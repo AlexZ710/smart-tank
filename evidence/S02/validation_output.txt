@@ -1,0 +1,57 @@
+=== S02 validation run: 2026-08-18T04:10:50Z ===
+
+--- [1] Inventory consistency with baseline lock (expect each >=1) ---
+ESP32-S3-WROOM-1 -> 1 match(es): PASS
+ADS1115 -> 6 match(es): PASS
+SEN0161-V2 -> 3 match(es): PASS
+A1 -> 2 match(es): PASS
+DS18B20 -> 3 match(es): PASS
+GPIO4 -> 2 match(es): PASS
+PT550 -> 2 match(es): PASS
+A3 -> 2 match(es): PASS
+XKC-Y25-T12V -> 2 match(es): PASS
+
+--- [2] Consistency across S01/S02 docs (pin assignments identical) ---
+A1 in S01 docs:
+docs/project_scope.md:1
+docs/measurement_boundary.md:1
+A3 in S01 docs:
+docs/project_scope.md:1
+docs/measurement_boundary.md:1
+GPIO4 in S01 docs:
+docs/project_scope.md:1
+docs/measurement_boundary.md:1
+
+--- [3] Forbidden-hardware occurrences (allowed ONLY in absent/forbidden/replaced context) ---
+docs/hardware_inventory.md:31:| ORP | Not available; branch removed entirely |
+docs/hardware_inventory.md:32:| EC / conductivity | Not available; automated salinity removed (salinity is manual refractometer/hydrometer input) |
+docs/hardware_inventory.md:33:| ZP4510 float switches | Not available; dual-float logic and fields removed |
+docs/hardware_inventory.md:34:| FS300A flow sensor | Not available; pulse code and flow fields removed |
+docs/hardware_deviation_record.md:12:| ORP | Not available | Entire ORP branch removed; no ORP fields anywhere |
+docs/hardware_deviation_record.md:13:| EC / conductivity | Not available | Automated EC/salinity branch removed; salinity is manual refractometer/hydrometer input only |
+docs/hardware_deviation_record.md:14:| ZP4510 float switches | Not available | Dual-float safety logic and fields removed |
+docs/hardware_deviation_record.md:15:| FS300A flow sensor | Not available | Flow demo, pulse code and flow fields removed |
+docs/hardware_deviation_record.md:16:| BH1750 digital lux sensor | Replaced | PT550 analog light sensor on ADS1115 A3; relative trend only, never PAR/PPFD/lux claims |
+docs/hardware_deviation_record.md:27:4. Reintroducing ORP, EC, ZP4510, or FS300A requires changing
+docs/hardware_deviation_record.md:33:Reviewed against the current repository state: no ORP/EC/ZP4510/FS300A
+
+--- [4] Unsupported measurement claim scan (expect no lux/PAR claims for PT550) ---
+docs/hardware_deviation_record.md:16:| BH1750 digital lux sensor | Replaced | PT550 analog light sensor on ADS1115 A3; relative trend only, never PAR/PPFD/lux claims |
+
+--- [5] Cross-check against package-level deviation record (dispositions must match) ---
+ORP: package=1 repo=3 -> MATCH
+ZP4510: package=1 repo=3 -> MATCH
+FS300A: package=1 repo=3 -> MATCH
+BH1750: package=1 repo=1 -> MATCH
+XKC-Y25-T12V: package=1 repo=1 -> MATCH
+
+--- [6] Repo-wide forbidden-hardware implementation scan (expect only docs/evidence hits) ---
+backend/ai_agent/reef_agent.py
+
+--- [7] Repo provisioning policy check ---
+Provisioning policy validation PASSED
+
+--- [6b] Verification of the single check-[6] code hit ---
+backend/ai_agent/reef_agent.py:18 -> text: "Boundary: ORP, EC, ZP4510 float state and flow are not measured in this hardware baseline."
+Verdict: explicit absent/boundary declaration, NOT an implementation. PASS.
+Repo-wide scan for forbidden telemetry fields (orp/ec_value/flow_rate/float_switch keys): no matches. PASS.

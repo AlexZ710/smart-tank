@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S02 (S01 complete)
+- Current session for a fresh repo: S03 (S01-S02 complete)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -32,26 +32,26 @@
 **Resume pointer:** Session 01 is complete and committed. Next session is S02 (Hardware Inventory Freeze) - read `03_Structured_Prompt_Pack/Session_02_Hardware_Inventory_Freeze.md` and `TASKS.md` before starting. Do not modify the S01 scope/boundary docs except via the change-control rule in `docs/project_scope.md`.
 
 ## Session 02 - Hardware Inventory Freeze
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S02/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S02/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `docs/hardware_inventory.md` (new), `docs/hardware_deviation_record.md` (new), `TASKS.md` (status update), `evidence/S02/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S02/validation_output.txt` (2026-08-18). Inventory consistency with baseline lock PASS (ESP32-S3-WROOM-1, ADS1115, SEN0161-V2->A1, DS18B20->GPIO4, PT550->A3, XKC optional). Pin assignments identical to S01 docs. Forbidden hardware appears only in absent/forbidden/replaced context; repo-wide code scan found one text boundary declaration in `backend/ai_agent/reef_agent.py:18` (verified: declaration, not implementation) and zero forbidden telemetry fields in code. Dispositions cross-checked against package-level `01_Project_Documentation/Hardware_Deviation_Record.md`: MATCH. No unsupported measurement claims. `python scripts/validate_wifi_provisioning.py` -> PASSED. Documentation-only session; no build applies.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (deviation record reviewed; no new deviations discovered)
 
-**Commit:** _pending_
+**Commit:** `S02 hardware inventory freeze`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Sessions 01-02 complete and committed. Next session is S03 (Repository and Data Schema) - read `03_Structured_Prompt_Pack/Session_03_Repository_and_Data_Schema.md`, `TASKS.md`, and the frozen `docs/` set before starting. Inventory/deviation docs may only change together with `Hardware_Baseline_Lock.md`.
 
 ## Session 03 - Repository and Data Schema
 **Status:** NOT_STARTED
