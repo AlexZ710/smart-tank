@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S04 (S01-S03 complete)
+- Current session for a fresh repo: S04 (in progress - compile verified; upload/serial blocked pending hardware; S01-S03 complete)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -76,28 +76,28 @@
 **Resume pointer:** Sessions 01-03 complete and committed. Next session is S04 (Arduino ESP32-S3 Environment) - read `03_Structured_Prompt_Pack/Session_04_Arduino_ESP32_S3_Environment.md` and `TASKS.md` first. Schema changes must update `database/schema.sql` + `docs/data_schema.md` together and never reintroduce excluded fields.
 
 ## Session 04 - Arduino ESP32-S3 Environment
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS (safe-paused)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S04/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S04/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [ ] Git completion commit created (WIP safe-pause commit created instead - upload/serial blocked)
 
-- [ ] ESP32 Arduino provisioning headers compile (`WiFi`, `Preferences`, `WebServer`, `DNSServer`)
-- [ ] No real Wi-Fi credential or device token exists in tracked code
-**Changed files:** _pending_
+- [x] ESP32 Arduino provisioning headers compile (`WiFi`, `Preferences`, `WebServer`, `DNSServer`)
+- [x] No real Wi-Fi credential or device token exists in tracked code
+**Changed files:** `docs/Arduino_Environment.md` (new), `firmware/arduino/S04_Environment_Check/S04_Environment_Check.ino` (new), `TASKS.md` (status update), `evidence/S04/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S04/validation_output.txt` (2026-08-18). arduino-cli 1.5.1 + esp32:esp32 core 3.3.11 established and recorded in `docs/Arduino_Environment.md`. Provisioning-header compile for FQBN `esp32:esp32:esp32s3` exit code 0 (346493 B flash / 26440 B RAM). Secret scan on sketch: no credentials. `python scripts/validate_wifi_provisioning.py` -> PASSED.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** BLOCKED on hardware: no ESP32-S3 board enumerates on USB (only Bluetooth COM3-COM6; no Espressif/CH340/CP210x/FTDI USB device). Acceptance items "ESP32-S3 upload works" and "115200 Serial output works" are unverified. Closing steps recorded in `docs/Arduino_Environment.md`.
 
-**Commit:** _pending_
+**Commit:** `S04 WIP safe pause: toolchain+compile verified, upload/serial blocked pending board` (completion commit deferred per session rules)
 
-**Resume pointer:** _pending_
+**Resume pointer:** RESUME S04, not S05, when the ESP32-S3 board is attached. Steps: (1) `arduino-cli board list` to find the COM port; (2) upload `firmware/arduino/S04_Environment_Check` with FQBN `esp32:esp32:esp32s3`; (3) capture 115200 Serial banner + heartbeat into `evidence/S04/serial_capture.txt`; (4) tick the remaining checkbox, set Status COMPLETE, update global pointer to S05, and create the completion commit `S04 ESP32-S3 Arduino environment`.
 
 ## Session 05 - Shared Firmware Framework
 **Status:** NOT_STARTED

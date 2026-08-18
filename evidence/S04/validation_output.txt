@@ -1,0 +1,22 @@
+=== S04 validation run (PARTIAL): 2026-08-18T04:49:09Z ===
+
+--- [1] Toolchain versions ---
+arduino-cli  Version: 1.5.1 Commit: 01f3d4f2b Date: 2026-06-05T10:22:12Z
+ID          Installed Latest Name
+esp32:esp32 3.3.11    3.3.11 esp32
+
+--- [2] Provisioning headers compile (esp32:esp32:esp32s3) ---
+Sketch uses 346493 bytes (26%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 26440 bytes (8%) of dynamic memory, leaving 301240 bytes for local variables. Maximum is 327680 bytes.
+compile exit code: 0
+
+--- [3] Upload + 115200 Serial verification: BLOCKED ---
+No ESP32-S3 board enumerates on USB. COM3-COM6 are Bluetooth serial ports only.
+PnP scans found no Espressif (VID 303A), CH340 (1A86), CP210x (10C4) or FTDI (0403) device.
+arduino-cli board list: only Bluetooth COM3-COM6, 'Unknown' protocol serial ports.
+
+--- [4] Secret scan on new sketch (expect no credentials) ---
+(no credential strings)
+
+--- [5] Repo provisioning policy check ---
+Provisioning policy validation PASSED
