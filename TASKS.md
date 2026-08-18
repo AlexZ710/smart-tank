@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S03 (S01-S02 complete)
+- Current session for a fresh repo: S04 (S01-S03 complete)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -54,26 +54,26 @@
 **Resume pointer:** Sessions 01-02 complete and committed. Next session is S03 (Repository and Data Schema) - read `03_Structured_Prompt_Pack/Session_03_Repository_and_Data_Schema.md`, `TASKS.md`, and the frozen `docs/` set before starting. Inventory/deviation docs may only change together with `Hardware_Baseline_Lock.md`.
 
 ## Session 03 - Repository and Data Schema
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S03/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S03/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `README.md` (repository skeleton + baseline summary), `docs/data_schema.md` (new), `data/raw/.gitkeep` (verified pre-existing), `TASKS.md` (status update), `evidence/S03/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S03/validation_output.txt` (2026-08-18). docs/data_schema.md covers all 5 tables of `database/schema.sql` (PASS) and all 13 telemetry_readings columns (PASS). No ORP/EC/conductivity/flow/float fields defined anywhere - only prose exclusion statements. `water_level_state` nullable and documented as optional-XKC-only. Repo skeleton present (README, schema doc, data drop zones, schema.sql). `python scripts/validate_wifi_provisioning.py` -> PASSED. Documentation session; no DB instance required.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (schema already excludes unavailable-sensor fields; manual salinity confined to `manual_measurements`)
 
-**Commit:** _pending_
+**Commit:** `S03 repository and data schema`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Sessions 01-03 complete and committed. Next session is S04 (Arduino ESP32-S3 Environment) - read `03_Structured_Prompt_Pack/Session_04_Arduino_ESP32_S3_Environment.md` and `TASKS.md` first. Schema changes must update `database/schema.sql` + `docs/data_schema.md` together and never reintroduce excluded fields.
 
 ## Session 04 - Arduino ESP32-S3 Environment
 **Status:** NOT_STARTED

@@ -1,0 +1,47 @@
+=== S03 validation run: 2026-08-18T04:24:37Z ===
+
+--- [1] Schema doc covers every table in database/schema.sql ---
+telemetry_readings: schema.sql=1 doc=1 -> PASS
+events: schema.sql=1 doc=1 -> PASS
+experiment_markers: schema.sql=1 doc=1 -> PASS
+manual_measurements: schema.sql=1 doc=1 -> PASS
+reports: schema.sql=1 doc=1 -> PASS
+
+--- [2] Every column of telemetry_readings documented ---
+id -> doc_hits=5 PASS
+device_id -> doc_hits=2 PASS
+recorded_at -> doc_hits=1 PASS
+temperature_c -> doc_hits=1 PASS
+ph -> doc_hits=1 PASS
+light_raw -> doc_hits=1 PASS
+light_voltage_v -> doc_hits=1 PASS
+water_level_state -> doc_hits=1 PASS
+wifi_rssi_dbm -> doc_hits=1 PASS
+firmware_version -> doc_hits=1 PASS
+experiment_id -> doc_hits=3 PASS
+event_flag -> doc_hits=1 PASS
+received_at -> doc_hits=1 PASS
+
+--- [3] Forbidden-field scan across schema + all code/docs (expect no field definitions) ---
+docs/data_schema.md:10:- **No ORP and no EC/conductivity fields exist anywhere in the schema.** These
+docs/data_schema.md:101:(ORP, EC/conductivity, ZP4510 float state, FS300A flow).
+README.md:5:and isolated. ORP, EC/conductivity, ZP4510 and FS300A are absent from the
+docs/data_schema.md:10:- **No ORP and no EC/conductivity fields exist anywhere in the schema.** These
+docs/data_schema.md:101:(ORP, EC/conductivity, ZP4510 float state, FS300A flow).
+README.md:5:and isolated. ORP, EC/conductivity, ZP4510 and FS300A are absent from the
+
+--- [4] Nullable XKC field present and documented as optional ---
+database/schema.sql:9:  water_level_state TEXT,
+docs/data_schema.md:17:- `water_level_state` is nullable: present only when the optional XKC-Y25-T12V
+docs/data_schema.md:33:| water_level_state | TEXT | nullable | Optional XKC only |
+
+--- [5] Repo skeleton check (Session 03 files) ---
+README.md -> EXISTS
+docs/data_schema.md -> EXISTS
+data/raw/.gitkeep -> EXISTS
+data/clean/.gitkeep -> EXISTS
+data/events/.gitkeep -> EXISTS
+database/schema.sql -> EXISTS
+
+--- [6] Repo provisioning policy check ---
+Provisioning policy validation PASSED
