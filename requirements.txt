@@ -1,0 +1,4 @@
+pandas>=2.0
+matplotlib>=3.8
+pyserial>=3.5
+pytest>=8.0

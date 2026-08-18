@@ -1,0 +1,1 @@
+export default function Page(){return <><h1 className="text-3xl font-bold">System Health</h1><p className="mt-3">Implemented and validated in the corresponding structured BigBang web session. This starter intentionally shows no fake sensor data.</p></>}

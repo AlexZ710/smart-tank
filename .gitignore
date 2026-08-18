@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+data/raw/*.csv
+!data/raw/.gitkeep
+
+.env
+.env.local
+.env.*.local
+web/.env.local

@@ -1,0 +1,15 @@
+Smart Tank Wi-Fi Provisioning Patch v1
+
+Provisioning policy validation PASSED
+
+Static validation checks:
+- no WIFI_SSID/WIFI_PASSWORD constants in firmware
+- no SET_LOCALLY placeholder in Arduino firmware
+- provisioning module present
+- WiFi.softAP present
+- Preferences/NVS storage present
+- wildcard DNS captive-portal redirect present
+- PROVISION recovery command present
+- CLEAR_WIFI factory-reset command present
+
+Arduino compile note: arduino-cli is not installed in this runtime, so hardware/toolchain compilation must be performed in Arduino IDE during Session 04/05.

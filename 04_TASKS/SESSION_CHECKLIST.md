@@ -1,0 +1,13 @@
+# Per-Session BigBang Checklist
+- [ ] Read TASKS and active structured prompt
+- [ ] Confirm one-session scope
+- [ ] Implement
+- [ ] Validate
+- [ ] Save evidence
+- [ ] Update TASKS status + changed files + blockers + commit + resume pointer
+- [ ] Review hardware/data truth
+- [ ] If networking is touched: confirm no real SSID/password/device token is added to tracked source
+- [ ] If provisioning is touched: verify NVS persistence and recovery behavior
+- [ ] `git status` reviewed
+- [ ] Separate session commit created
+- [ ] Stop safely

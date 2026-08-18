@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: smart_tank
+      POSTGRES_USER: smart_tank
+      POSTGRES_PASSWORD: smart_tank_dev_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - smart_tank_pgdata:/var/lib/postgresql/data
+volumes:
+  smart_tank_pgdata:
