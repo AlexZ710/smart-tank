@@ -7,29 +7,29 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S01
+- Current session for a fresh repo: S02 (S01 complete)
 
 ## Session 01 - Project Scope and Measurement Boundary
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S01/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S01/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `docs/project_scope.md` (new), `docs/measurement_boundary.md` (new), `TASKS.md` (status update), `evidence/S01/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S01/validation_output.txt` (2026-08-18). Baseline pin/channel consistency PASS (ADS1115, SEN0161-V2 on A1, PT550 on A3, DS18B20 on GPIO4, ESP32-S3). Forbidden hardware (ORP, EC, ZP4510, FS300A) appears only in explicit forbidden/unavailable sections - no reintroduction. PT550 documented as relative light signal only, never PAR/PPFD/lux unless calibrated. No Wi-Fi credentials/secrets in the new docs. `python scripts/validate_wifi_provisioning.py` -> PASSED. No code/build applies in this documentation-only session.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (unavailable-sensor drift reviewed: ammonia and salinity remain manual-only; XKC remains optional/nullable)
 
-**Commit:** _pending_
+**Commit:** `S01 project scope and measurement boundary`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Session 01 is complete and committed. Next session is S02 (Hardware Inventory Freeze) - read `03_Structured_Prompt_Pack/Session_02_Hardware_Inventory_Freeze.md` and `TASKS.md` before starting. Do not modify the S01 scope/boundary docs except via the change-control rule in `docs/project_scope.md`.
 
 ## Session 02 - Hardware Inventory Freeze
 **Status:** NOT_STARTED

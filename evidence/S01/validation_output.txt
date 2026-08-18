@@ -1,0 +1,27 @@
+=== S01 validation run: 2026-08-18T03:56:53Z ===
+
+--- [1] Baseline pin/channel consistency (expect each match >=1) ---
+ADS1115 -> 5 match(es): PASS
+A1 -> 2 match(es): PASS
+A3 -> 2 match(es): PASS
+GPIO4 -> 2 match(es): PASS
+SEN0161 -> 2 match(es): PASS
+DS18B20 -> 2 match(es): PASS
+PT550 -> 2 match(es): PASS
+ESP32-S3 -> 3 match(es): PASS
+
+--- [2] Forbidden-hardware occurrences (allowed ONLY in explicit forbidden/unavailable context) ---
+docs/project_scope.md:44:- Reintroducing ORP, EC/conductivity, ZP4510 float switches, or the FS300A
+docs/measurement_boundary.md:35:- ORP (oxidation-reduction potential).
+docs/measurement_boundary.md:36:- EC / conductivity.
+docs/measurement_boundary.md:37:- ZP4510 float switches.
+docs/measurement_boundary.md:38:- FS300A flow sensor.
+
+--- [3] Unsupported measurement claim scan (expect 'PAR' only with the not-PAR caveat; no lux claims) ---
+docs/measurement_boundary.md:13:| Ambient light signal | PT550 -> ADS1115 A3 -> I2C | Raw ADC / relative | Relative trend only. **Not PAR/PPFD** unless calibrated against a suitable reference; must never be labeled lux/PAR/PPFD uncalibrated. |
+
+--- [4] Secret scan on new docs (expect no matches) ---
+(none)
+
+--- [5] Repo provisioning policy check ---
+Provisioning policy validation PASSED
