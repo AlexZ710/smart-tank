@@ -1,0 +1,33 @@
+=== S05 validation run: 2026-08-28T08:56:48Z ===
+
+--- [1] Mandatory provisioning behavior audit (code review vs S05 prompt items 1-12) ---
+ 1. No real Wi-Fi SSID/password in source ............ PASS (script scan, below)
+ 2. No saved config -> SoftAP + captive portal ........ PASS begin(): loadConfig()==false -> startPortal()
+ 3. AP SSID SmartTank-Setup-XXXXXX .................... PASS startPortal(): "SmartTank-Setup-" + 6-hex deviceId suffix
+ 4. One-time AP password printed to Serial ............ PASS makeOneTimePassword() 10-char, printed in startPortal()
+ 5. Portal reachable at 192.168.4.1 ................... PASS kPortalIp(192,168,4,1) + WiFi.softAPConfig
+ 6. Credentials stored via Preferences/NVS ............ PASS namespace st_cfg keys ssid/pass/api_url/token
+ 7. Normal boot: bounded station timeout .............. PASS tryStation(15000 default), 250ms poll
+ 8. Connection failure falls back to portal ........... PASS begin(): tryStation false -> startPortal()
+ 9. PROVISION reopens portal .......................... PASS pollSerial() -> startPortal() (no NVS clear)
+10. CLEAR_WIFI clears NVS and restarts ................ PASS clearAllAndRestart(): prefs_.clear() + WiFi.disconnect(true,true) + ESP.restart()
+11. Wi-Fi password/device token never echoed to logs .. PASS handleSave() prints only SSID + explicit "not logged" note; tryStation() prints SSID only
+12. Telemetry URL + token persistable locally ......... PASS api_url/token keys saved via portal form, never from source
+
+--- [2] Provisioning policy script (extended in S05) ---
+Provisioning policy validation PASSED
+exit=0
+
+--- [3] Compile results (FQBN esp32:esp32:esp32s3, core esp32:esp32 3.3.11, arduino-cli 1.5.1) ---
+SmartTank_WiFi_Provisioning:   exit=0  899324 B flash (68%), 46128 B RAM (14%)
+SmartTank_Integrated_Monitor:  exit=0  955913 B flash (72%), 47880 B RAM (14%)
+SmartTank_WiFi_Telemetry:      exit=0  899648 B flash (68%), 46136 B RAM (14%)
+
+--- [4] Secret scan over all firmware source ---
+(no matches)
+
+--- [5] Hardware acceptance checks: BLOCKED ---
+First-boot portal, persistence across restart, failed-network fallback,
+PROVISION/CLEAR_WIFI runtime behavior, and no-log runtime capture all require
+a physical ESP32-S3 board; none enumerated on USB during Session 05.
+Recorded as follow-up (same pattern as S04 deviation).

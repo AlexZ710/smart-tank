@@ -3,6 +3,22 @@
 ## Why this exists
 Smart Tank must not require a firmware edit whenever Wi-Fi changes.
 
+## Where the framework lives (Session 05)
+The reusable provisioning module `WifiProvisioning.h/.cpp`
+(class `SmartTankProvisioning`) exists as identical copies in every
+Wi-Fi-capable sketch:
+
+- `firmware/arduino/SmartTank_WiFi_Provisioning/` - standalone provisioning test;
+- `firmware/arduino/SmartTank_Integrated_Monitor/` - integrated framework (S05);
+- `firmware/arduino/SmartTank_WiFi_Telemetry/` - telemetry scaffold, reused by Session 23.
+
+All sketches share one credential mechanism: `provisioning.begin()` on boot
+(saved network with bounded timeout, else SoftAP portal) and
+`provisioning.loop()` from `loop()` (portal, DNS wildcard, `PROVISION` /
+`CLEAR_WIFI` Serial commands). Session 23 must reuse this module, not create
+a second Wi-Fi credential path. The monitor sketch keeps sensor reads
+millis()-based so the portal is never blocked by `delay()`.
+
 ## Stored locally in ESP32 NVS
 Using Arduino `Preferences` namespace `st_cfg`:
 - `ssid`

@@ -23,10 +23,31 @@ for path in FW.rglob("*"):
 required_files = [
     FW / "SmartTank_WiFi_Provisioning" / "WifiProvisioning.cpp",
     FW / "SmartTank_WiFi_Provisioning" / "WifiProvisioning.h",
+    # Session 05: the reusable provisioning module must also be embedded in
+    # the telemetry scaffold (S23 reuse) and the integrated monitor (S05).
+    FW / "SmartTank_WiFi_Telemetry" / "WifiProvisioning.cpp",
+    FW / "SmartTank_WiFi_Telemetry" / "WifiProvisioning.h",
+    FW / "SmartTank_Integrated_Monitor" / "WifiProvisioning.cpp",
+    FW / "SmartTank_Integrated_Monitor" / "WifiProvisioning.h",
 ]
 for path in required_files:
     if not path.exists():
         violations.append(f"missing: {path.relative_to(ROOT)}")
+
+# Session 05: the integrated monitor must use the shared provisioning entry
+# points instead of introducing its own credential mechanism.
+monitor_ino = (FW / "SmartTank_Integrated_Monitor" / "SmartTank_Integrated_Monitor.ino")
+if monitor_ino.exists():
+    monitor_text = monitor_ino.read_text(encoding="utf-8", errors="ignore")
+    for marker in ['#include "WifiProvisioning.h"', "provisioning.begin", "provisioning.loop"]:
+        if marker not in monitor_text:
+            violations.append(f"SmartTank_Integrated_Monitor missing provisioning marker: {marker}")
+    # Hardcoded credential constants are already rejected by the pattern scan
+    # above; this keeps an explicit, readable check for the S05 gate.
+    if "WIFI_SSID" in monitor_text or "WIFI_PASSWORD" in monitor_text:
+        violations.append("SmartTank_Integrated_Monitor contains hardcoded credential constants")
+else:
+    violations.append("missing: SmartTank_Integrated_Monitor sketch")
 
 cpp = (FW / "SmartTank_WiFi_Provisioning" / "WifiProvisioning.cpp").read_text(
     encoding="utf-8", errors="ignore"
