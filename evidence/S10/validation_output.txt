@@ -1,0 +1,29 @@
+=== S10 validation run: 2026-08-28T09:51:55Z ===
+
+--- [1] Test suite ---
+.......................                                                  [100%]
+23 passed in 3.49s
+(13 S09/pre-existing + 5 clean_data + 5 visualize tests)
+
+--- [2] End-to-end synthetic pipeline demo ---
+Fixture: 6 synthetic rows incl. 3 invalid (temp 200 C, pH -5, light 150%). NOT real telemetry.
+clean(): all 6 rows preserved; flags correct (temperature_valid F only for 200 C row;
+ph_valid F only for -5 row; light_valid F only for 150% row); xkc 'NA' passthrough intact.
+plot_series(): 3 figures written (temperature.png, ph.png, light_relative.png); invalid rows excluded via flags.
+Figure copies (from synthetic data): evidence/S10/synthetic_demo_*.png
+
+--- [3] Measurement-claim check on chart labels ---
+6:- The light channel is labeled "Relative light (%)" - the PT550 is a
+27:    ("light_relative_pct", "light_valid", "Relative light (%)", "light_relative.png"),
+7:  relative signal. Charts must never claim lux/PAR/PPFD.
+
+--- [4] Raw-data preservation check ---
+28:    assert len(df) == len(ROWS)  # no rows deleted
+
+--- [5] Secret scan + policy ---
+(no matches - PASS)
+Provisioning policy validation PASSED
+
+--- [6] Documentation ---
+No schema or boundary changes were required (derived *_valid flags are a file-pipeline
+layer only; DB schema and measurement boundary unchanged).

@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S10 (S01-S09 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09 fully validated host-side)
+- Current session for a fresh repo: S11 (S01-S10 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S10 fully validated host-side)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -216,26 +216,26 @@
 **Resume pointer:** Proceed to S10 (Cleaning and Visualization). Note: live Serial collection still awaits the board (S04 follow-up); the collector is ready to run as `python backend/collector/serial_collector.py --port <COMx>` once it is attached.
 
 ## Session 10 - Cleaning and Visualization
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S10/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S10/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `backend/collector/clean_data.py` (rewritten: numeric coercion, temperature/pH/light validity flags, raw-row preservation, XKC NA/0/1 passthrough fix), `backend/visualization/visualize.py` (rewritten: valid-only plotting via flags, Agg backend, honest "Relative light (%)" labels, empty-channel skip), `tests/test_clean_data.py` (new, 5 tests), `tests/test_visualize.py` (new, 5 tests), `TASKS.md`, `evidence/S10/` (validation_output.txt + synthetic_demo_*.png)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S10/validation_output.txt` (2026-08-28). Host-side session - fully validated without hardware. `python -m pytest tests/` -> 23 passed. End-to-end synthetic pipeline demo (fixture clearly labeled as non-telemetry): 6 rows preserved through clean(); validity flags correct for all three planted invalid values (200 C temp, pH -5, light 150%); XKC "NA" survives pandas' NA-parsing; plot_series wrote temperature.png / ph.png / light_relative.png with invalid rows excluded (copies in evidence/S10/synthetic_demo_*.png). Chart labels contain no lux/PAR/PPFD claims. Secret scan clean; provisioning policy script PASSED. No schema/boundary changes required (*_valid flags are a file-pipeline layer only).
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (unavailable-sensor drift review: no ORP/EC/flow/float fields anywhere in the pipeline; XKC absent-tolerant)
 
-**Commit:** _pending_
+**Commit:** `S10 cleaning and visualization`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S11 (Deterministic Rule Engine). With real collected data the same commands run unchanged: `python backend/collector/clean_data.py` then `python backend/visualization/visualize.py`.
 
 ## Session 11 - Deterministic Rule Engine
 **Status:** NOT_STARTED
