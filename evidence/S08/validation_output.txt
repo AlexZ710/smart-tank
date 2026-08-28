@@ -1,0 +1,33 @@
+=== S08 validation run: 2026-08-28T09:26:23Z ===
+
+--- [1] Baseline consistency (PT550 on A3, ADS1115 0x48/SDA8/SCL9) ---
+sketch: LIGHT_CHANNEL = 3 -> 1 PASS
+sketch: ADS_ADDR = 0x48 -> 1 PASS
+sketch: SDA_PIN = 8 -> 1 PASS
+sketch: SCL_PIN = 9 -> 1 PASS
+3
+
+--- [2] No unsupported claims (no lux/PAR/PPFD as measurements) ---
+docs/pt550_validation.md:13:reported as calibrated lux, PAR, or PPFD unless an external calibration
+
+--- [3] XKC marked absent; no dependency on it ---
+10:**NOT INSTALLED.**
+29:constexpr bool ENABLE_XKC = false;
+2
+
+--- [4] Standalone-only check (no Wi-Fi/HTTP/provisioning) ---
+(none - PASS)
+
+--- [5] Compile ---
+Sketch uses 305689 bytes (23%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 23432 bytes (7%) of dynamic memory, leaving 304248 bytes for local variables. Maximum is 327680 bytes.
+exit=0
+
+--- [6] Secret scan + policy ---
+(no matches - PASS)
+Provisioning policy validation PASSED
+
+--- [7] Hardware standalone capture: BLOCKED ---
+No ESP32-S3 board attached during Session 08 (Bluetooth COM3-6 only).
+PT550 dark/light procedure recorded in docs/pt550_validation.md;
+target: evidence/S08/serial_capture.txt. XKC remains NOT INSTALLED - no capture needed.
