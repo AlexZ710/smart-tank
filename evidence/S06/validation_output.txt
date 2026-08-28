@@ -1,0 +1,26 @@
+=== S06 validation run: 2026-08-28T09:07:40Z ===
+
+--- [1] Baseline consistency (DS18B20 on GPIO4, 1-Wire, 4.7k) ---
+GPIO4\|ONE_WIRE_PIN = 4 -> 5 match(es): PASS
+4.7 -> 5 match(es): PASS
+OneWire -> 4 match(es): PASS
+DallasTemperature -> 6 match(es): PASS
+
+--- [2] Standalone-only check (no Wi-Fi/ADS/pH in the bring-up sketch) ---
+(none - PASS)
+
+--- [3] Compile for locked FQBN ---
+Sketch uses 307250 bytes (23%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 22200 bytes (6%) of dynamic memory, leaving 305480 bytes for local variables. Maximum is 327680 bytes.
+exit=0
+
+--- [4] Secret scan ---
+(no matches - PASS)
+
+--- [5] Provisioning policy script (unchanged behavior must still pass) ---
+Provisioning policy validation PASSED
+
+--- [6] Hardware standalone Serial capture: BLOCKED ---
+No ESP32-S3 board enumerated on USB during Session 06 (Bluetooth COM3-6 only).
+Standalone sensor capture procedure recorded in docs/ds18b20_validation.md;
+target file: evidence/S06/serial_capture.txt.

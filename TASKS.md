@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S06 (S01-S05 complete; S04/S05 closed by user instruction - see S04/S05 deviation notes for pending board verification)
+- Current session for a fresh repo: S07 (S01-S06 complete; S04/S05/S06 closed with user-approved deviations - see their deviation notes for pending board verification)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -128,26 +128,26 @@
 **Resume pointer:** Proceed to S06 (DS18B20 Temperature Bring-up). Outstanding S05 hardware follow-up when the board is attached: upload `SmartTank_WiFi_Provisioning`, capture first-boot SoftAP banner + 192.168.4.1 portal + save/reboot station connect + PROVISION + CLEAR_WIFI Serial captures into `evidence/S05/hardware/`, then append to this session's Validation evidence.
 
 ## Session 06 - DS18B20 Temperature Bring-up
-**Status:** NOT_STARTED
+**Status:** COMPLETE (code-verified; standalone Serial capture deferred - see deviation note)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S06/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S06/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `firmware/arduino/DS18B20_Bringup/DS18B20_Bringup.ino` (new standalone sketch), `docs/ds18b20_validation.md` (new), `TASKS.md`, `evidence/S06/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S06/validation_output.txt` (2026-08-28). Standalone sketch is GPIO4/1-Wire/4.7k-consistent with the baseline lock; contains no Wi-Fi/ADS/pH code (standalone-only check PASS); compiles exit=0 for FQBN esp32:esp32:esp32s3 (307250 B flash / 22200 B RAM; OneWire 2.3.8, DallasTemperature 4.0.6); secret scan clean; provisioning policy script still PASSED. Standalone capture procedure with pass criteria (1 probe, valid ROM, 12-bit, 10+ OK readings, no -127 sentinel, disconnect negative check) recorded in `docs/ds18b20_validation.md`.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (closure explicitly approved by user decision 2026-08-28): the mandatory standalone Serial evidence (S06 prompt: "Hardware sessions must record the standalone sensor result before integrated testing") is physically unverified - no ESP32-S3 board/probe attached. Capture target: `evidence/S06/serial_capture.txt` using `docs/ds18b20_validation.md` procedure. Sensor drift review: no unavailable sensors touched; DS18B20 remains the sole temperature source.
 
-**Commit:** _pending_
+**Commit:** `S06 ds18b20 temperature bring-up`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S07 (ADS1115 and pH Bring-up). Outstanding S06 hardware follow-up when board + probe are attached: upload `DS18B20_Bringup`, capture 115200 Serial output (>=10 OK readings + disconnect negative check) into `evidence/S06/serial_capture.txt`, complete the checklist in `docs/ds18b20_validation.md`, then append the capture to this session's Validation evidence.
 
 ## Session 07 - ADS1115 and pH Bring-up
 **Status:** NOT_STARTED
