@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S09 (S01-S08 complete; S04-S08 closed with user-approved deviations - see their deviation notes for pending board verification)
+- Current session for a fresh repo: S10 (S01-S09 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09 fully validated host-side)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -194,26 +194,26 @@
 **Resume pointer:** Proceed to S09 (Host Serial Collector). Outstanding S08 hardware follow-up when the board is attached: upload `PT550_Bringup`, run the dark/light test per `docs/pt550_validation.md`, save the capture to `evidence/S08/serial_capture.txt`, and append it to this session's Validation evidence. (This also completes the bring-up trio with the S06/S07 follow-ups.)
 
 ## Session 09 - Host Serial Collector
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S09/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S09/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `backend/collector/serial_collector.py` (rewritten: testable parse_csv_line/ensure_csv/collect, optional XKC NA/0/1 handling, append-only with header-drift refusal, no invented data), `tests/test_serial_collector.py` (new, 11 tests), `TASKS.md`, `evidence/S09/validation_output.txt` (new). `data/raw/reef_data.csv` is created at runtime (header-only demo run recorded) and remains gitignored by design (`data/raw/*.csv`); rows are only ever collected from the physical device.
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S09/validation_output.txt` (2026-08-28). Host-side session - fully validated without hardware. `python -m pytest tests/` -> 13 passed (2 pre-existing rule tests + 11 new collector tests: XKC NA/0/1, banner/header/malformed line rejection, NaN/Inf rejection, append-only preservation, header-drift refusal). Collector EXPECTED schema byte-matches the SmartTank_Integrated_Monitor CSV header (grep-verified) and the telemetry fields in docs/data_schema.md. ensure_csv demo: create -> True, second call -> False (no truncation). Secret scan clean; provisioning policy script PASSED. Python env: conda env `reef`, pandas 3.0.5, pyserial 3.5, pytest 9.1.1.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (no hardware required; unavailable-sensor drift review: XKC remains NA/optional, no ORP/EC/flow/float fields introduced anywhere)
 
-**Commit:** _pending_
+**Commit:** `S09 host serial collector`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S10 (Cleaning and Visualization). Note: live Serial collection still awaits the board (S04 follow-up); the collector is ready to run as `python backend/collector/serial_collector.py --port <COMx>` once it is attached.
 
 ## Session 10 - Cleaning and Visualization
 **Status:** NOT_STARTED

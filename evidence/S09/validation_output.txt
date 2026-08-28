@@ -1,0 +1,38 @@
+=== S09 validation run: 2026-08-28T09:41:50Z ===
+
+--- [1] Environment ---
+python 3.12.13 | pandas 3.0.5 | pyserial 3.5 | pytest 9.1.1
+requirements.txt installed via pip (conda env reef)
+
+--- [2] Test suite ---
+.............                                                            [100%]
+13 passed in 1.18s
+
+--- [3] Append-only CSV creation demo (header only, no fabricated data) ---
+created: True
+created again: False
+timestamp_ms,temperature_c,ph,ph_voltage_v,light_relative_pct,light_voltage_v,xkc_level_state
+(data/raw/reef_data.csv is gitignored by design - data/raw/*.csv; rows are only ever collected from the physical device)
+
+--- [4] Schema consistency with firmware CSV + docs/data_schema.md ---
+collector EXPECTED: timestamp_ms,temperature_c,ph,ph_voltage_v,light_relative_pct,light_voltage_v,xkc_level_state
+66:  Serial.println("timestamp_ms,temperature_c,ph,ph_voltage_v,light_relative_pct,light_voltage_v,xkc_level_state");
+integrated monitor header matches - PASS
+5
+
+--- [5] XKC optional handling ---
+34:XKC_ABSENT = "NA"
+35:XKC_VALUES = {XKC_ABSENT, "0", "1"}
+67:    if xkc not in XKC_VALUES:
+
+--- [6] No invented telemetry: collector never synthesizes values ---
+49:        return None
+52:        return None
+56:        return None
+62:            return None
+64:            return None  # NaN/Inf from a faulty probe must not enter raw data
+68:        return None
+
+--- [7] Secret scan on changed files ---
+(no matches - PASS)
+Provisioning policy validation PASSED
