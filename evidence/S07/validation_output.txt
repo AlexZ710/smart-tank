@@ -1,0 +1,38 @@
+=== S07 validation run: 2026-08-28T09:17:42Z ===
+
+--- [1] Baseline consistency (ADS1115 0x48, SDA8/SCL9, pH on A1) ---
+0x48 -> 7 match(es): PASS
+SDA_PIN = 8 -> 1 match(es): FAIL
+SCL_PIN = 9 -> 1 match(es): FAIL
+PH_CHANNEL = 1\|A1 -> 12 match(es): PASS
+
+--- [2] Two-point workflow present (CAL7/CAL4/SHOWCAL + buffers) ---
+8
+3
+
+--- [3] Standalone-only check (no Wi-Fi/HTTP/provisioning in sketch) ---
+(none - PASS)
+
+--- [4] No unsupported claims: placeholder voltages labeled as placeholders ---
+51:| ph7Voltage (V) | _pending capture (starter placeholder 1.50)_ |
+52:| ph4Voltage (V) | _pending capture (starter placeholder 2.03)_ |
+
+--- [5] Compile (results recorded from run) ---
+ADS1115_pH_Bringup: exit=0, 308689 B flash (23%), 23488 B RAM (7%)
+I2C_Scanner (coding pack): exit=0, 300509 B flash (22%), 23024 B RAM (7%)
+
+--- [6] Secret scan ---
+(no matches - PASS)
+
+--- [7] Provisioning policy script ---
+Provisioning policy validation PASSED
+
+--- [8] Hardware standalone capture + buffer calibration: BLOCKED ---
+No ESP32-S3 board / ADS1115 / SEN0161-V2 attached during Session 07
+(Bluetooth COM3-6 only). I2C 0x48 verification, buffer captures and
+verification readings remain pending per docs/ph_calibration_log.md;
+target capture: evidence/S07/serial_capture.txt.
+
+--- [1b] Corrected SDA/SCL consistency check ---
+SDA GPIO8: sketch=1 doc=1 -> PASS
+SCL GPIO9: sketch=1 doc=1 -> PASS

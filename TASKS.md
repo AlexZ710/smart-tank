@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S07 (S01-S06 complete; S04/S05/S06 closed with user-approved deviations - see their deviation notes for pending board verification)
+- Current session for a fresh repo: S08 (S01-S07 complete; S04-S07 closed with user-approved deviations - see their deviation notes for pending board verification)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -150,26 +150,26 @@
 **Resume pointer:** Proceed to S07 (ADS1115 and pH Bring-up). Outstanding S06 hardware follow-up when board + probe are attached: upload `DS18B20_Bringup`, capture 115200 Serial output (>=10 OK readings + disconnect negative check) into `evidence/S06/serial_capture.txt`, complete the checklist in `docs/ds18b20_validation.md`, then append the capture to this session's Validation evidence.
 
 ## Session 07 - ADS1115 and pH Bring-up
-**Status:** NOT_STARTED
+**Status:** COMPLETE (code-verified; physical I2C/buffer validation deferred - see deviation note)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S07/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S07/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `firmware/arduino/ADS1115_pH_Bringup/ADS1115_pH_Bringup.ino` (new standalone sketch with two-point CAL7/CAL4/SHOWCAL workflow), `docs/ph_calibration_log.md` (new), `TASKS.md`, `evidence/S07/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S07/validation_output.txt` (2026-08-28). Sketch + I2C_Scanner compile exit=0 for FQBN esp32:esp32:esp32s3 (bring-up 308689 B / scanner 300509 B). Baseline consistency PASS: ADS1115 0x48, SDA GPIO8, SCL GPIO9, SEN0161-V2 on A1. Two-point workflow implemented (CAL7/CAL4 capture 32-sample averages, SHOWCAL printout, UNCALIBRATED status until both points captured). Starter calibration placeholders (1.50/2.03 V) explicitly labeled as placeholders, not calibrations. Standalone-only check PASS (no Wi-Fi/HTTP); secret scan clean; provisioning policy script PASSED.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (closure explicitly approved by user decision 2026-08-28): physical bring-up unverified - no ESP32-S3/ADS1115/SEN0161-V2 attached. Pending on-hardware steps per `docs/ph_calibration_log.md`: I2C scanner shows only 0x48; bring-up sketch detects ADS1115; CAL7/CAL4 captures in pH 7.00/4.00 buffers; +/-0.1 pH verification; constants entered into log + integrated monitor. Capture target: `evidence/S07/serial_capture.txt`. Sensor drift review: pH remains the sole acidity measurement; no unavailable sensors touched.
 
-**Commit:** _pending_
+**Commit:** `S07 ads1115 and ph bring-up`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S08 (PT550 and Optional XKC). Outstanding S07 hardware follow-up when attached: run the `docs/ph_calibration_log.md` procedure end-to-end, save the Serial capture to `evidence/S07/serial_capture.txt`, fill the calibration record table, then update the integrated monitor's ph7Voltage/ph4Voltage and append evidence to this session.
 
 ## Session 08 - PT550 and Optional XKC
 **Status:** NOT_STARTED
