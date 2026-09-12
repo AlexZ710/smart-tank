@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S23 (S01-S22 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract (25 web unit tests + full curl matrix: 401/400/413/429, partial success, reject-never-clamp, honest 503s); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S22 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip (INSERT + read-back) deferred; web build S23-S28 next)
+- Current session for a fresh repo: S24 (S01-S23 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract, S23 Wi-Fi telemetry sketch compile-verified (1081077 B flash / 82%, runtime HARDWARE-GATED - no board attached); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S23 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip + S23 on-device telemetry deferred; web build S24-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -504,29 +504,30 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S23 (ESP32 Wi-Fi Telemetry): extend the integrated firmware with Wi-Fi POST of the frozen contract JSON (NA->null mapping, batch buffer flushing on reconnect with original timestamp_ms preserved, token+API URL from NVS st_cfg via the existing provisioning portal - MUST reuse WifiProvisioning.h/.cpp, never hardcode credentials), arduino-cli compile verification for esp32:esp32:esp32s3; runtime verification is HARDWARE-GATED (no board attached) - close compile-verified with honest deviation per S05-S08 pattern. Evidence to `evidence/S23/`. Carry forward: DB round-trip re-run when an engine exists; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 23 - ESP32 WiFi Telemetry
-**Status:** NOT_STARTED
+**Status:** COMPLETE (compile-verified; runtime verification HARDWARE-GATED - no board attached)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S23/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S23/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-- [ ] Telemetry reuses Session 05 provisioning; no `WIFI_SSID`/`WIFI_PASSWORD` constants are introduced
-- [ ] Telemetry URL and device token come from local provisioned configuration
-- [ ] Wi-Fi outage/recovery preserves credentials and does not fabricate telemetry
-**Changed files:** _pending_
+- [x] Telemetry reuses Session 05 provisioning; no `WIFI_SSID`/`WIFI_PASSWORD` constants are introduced
+- [x] Telemetry URL and device token come from local provisioned configuration
+- [x] Wi-Fi outage/recovery preserves credentials and does not fabricate telemetry
 
-**Validation evidence:** _pending_
+**Changed files:** `firmware/arduino/SmartTank_WiFi_Telemetry/SmartTank_WiFi_Telemetry.ino` (REWRITTEN from status-only scaffold: merged the validated S05-S08 sensor path (DS18B20 on GPIO4, ADS1115 @0x48 GAIN_ONE pH A1 + PT550 A3 SDA8/SCL9, ENABLE_XKC=false baseline) with contract JSON POST - {device_id, firmware_version 1.0.0-s23, readings[timestamp_ms,temperature_c,ph,ph_voltage_v,light_relative_pct,light_voltage_v,xkc_level_state]}; failed/absent channels -> JSON null + Serial NA (DEVICE_DISCONNECTED_C / isnan guards, never defaults); 240-slot ring buffer (~4 min offline) flushes every 10 s and on reconnect with ORIGINAL timestamp_ms preserved; oldest-drop on overflow with honest Serial note + dropped_oldest counter; bounded HTTP 5 s connect/5 s transfer, exponential backoff to 60 s on 5xx/network errors, 4xx drops batch with logged server reason (401 -> re-provision hint); CONFIGURATION NEEDED state when Wi-Fi up but api_url/token unprovisioned - local sensing continues, nothing sent, nothing fabricated; locked Serial CSV contract preserved in parallel; S07 calibration placeholders 1.50/2.03 V carried with same comment), `docs/Device_Provisioning.md` (new S23 telemetry-behavior section: NVS-only URL/token, state matrix incl. offline buffering, overflow honesty, 401/4xx/5xx handling, bounded timeouts), `evidence/S23/compile_output.txt` + `validation_output.txt` (new), `TASKS.md`. WifiProvisioning.h/.cpp in the sketch dir: VERIFIED byte-identical to the S05 originals (reused, not duplicated, not modified).
 
-**Blockers/deviations:** _none recorded_
+**Validation evidence:** `evidence/S23/validation_output.txt` (2026-09-12). [1] arduino-cli compile esp32:esp32:esp32s3: SUCCESS - 1081077 B flash (82%), 59120 B RAM (18%), exit=0. [2]+[2a] credential audit: zero WIFI_SSID/WIFI_PASSWORD/token/Bearer/URL source constants in the sketch; only residual = S05 portal HTML placeholder 'https://your-app.example/api/telemetry' (example text, module unchanged); URL/token/deviceId exclusively via provisioning.telemetryUrl()/deviceToken()/deviceId() (5 call sites listed). [3] Module reuse: diff -q identical to SmartTank_WiFi_Provisioning S05 copies. [4] No-fabrication mapping: DEVICE_DISCONNECTED_C x2, isnan x3, xkcState=-1->null, NA x13, ENABLE_XKC=false confirmed. [5]+[5a] firmware-wide forbidden audit: 4 hits, all lux/PAR/PPFD rejection prose (S08 bringup + S23 comment); zero ORP/EC/ZP4510/FS300A hits. [6] Standing gates: pytest 90 passed; provisioning policy PASSED; web tests 25/25. [7] Contract field spot-check: all 9 payload fields present in builder.
 
-**Commit:** _pending_
+**Blockers/deviations:** (1) HARDWARE-GATED: no ESP32-S3 attached (S04-S08 blocker unchanged), so runtime acceptance items (live POST to the S22 API, first-boot provisioning capture, Wi-Fi-loss buffering/reconnect flush capture) are DEFERRED, not skipped - per docs/Web_Acceptance_Criteria.md S23 is explicitly hardware-gated and must not be silently marked runtime-verified. When a board is available: flash this sketch, provision via portal (SSID/pass + api_url=http://<host>:3000/api/telemetry + token), verify POST 200 {accepted} against the S22 server, then pull the Wi-Fi plug and confirm buffered flush with preserved timestamp_ms. (2) The live DB round-trip (S20/S22 WSL blocker) also gates end-to-end device->API->Postgres verification. (3) Closed compile-verified under the user's rush directive, consistent with the S05-S08 hardware-blocked pattern. (4) Unavailable-sensor drift review: XKC stays ENABLE_XKC=false -> null -> OPTIONAL_ABSENT; no ORP/EC/ZP4510/FS300A code paths exist; light sent as relative % only.
 
-**Resume pointer:** _pending_
+**Commit:** `feat: add provisioned ESP32 WiFi telemetry`
+
+**Resume pointer:** Proceed to S24 (Live Status and Device Health UI): wire `/` and `/system` to real data via the S22 endpoints (latest per device + six-state badges, last-seen/uptime/ingestion errors, XKC "not installed" when null), polling or SSR refresh, honest STALE/MISSING/OPTIONAL_ABSENT treatment per frozen architecture; DB-dependent verification remains degraded-honest until an engine exists (S20 blocker). Evidence to `evidence/S24/`. Carry forward: S23 runtime captures + DB round-trip when hardware/engine available; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 24 - Live Status and Device Health UI
 **Status:** NOT_STARTED

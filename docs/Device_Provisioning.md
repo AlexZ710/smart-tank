@@ -78,6 +78,29 @@ The same local portal can store:
 
 During early sensor sessions these may be blank. Session 23 configures them before cloud/API telemetry.
 
+## Telemetry behavior (Session 23, `SmartTank_WiFi_Telemetry`)
+
+The S23 sketch sends the frozen `docs/Telemetry_Contract.md` JSON to
+`POST /api/telemetry` with `Authorization: Bearer <token>` — URL and token
+come ONLY from NVS (`api_url` / `token`), never from source.
+
+| Device state | Behavior |
+|---|---|
+| Wi-Fi connected + URL/token provisioned | 1 Hz sensing; batches flush every 10 s (`{device_id, firmware_version, readings[]}`) |
+| Wi-Fi connected + URL/token missing | **CONFIGURATION NEEDED** reported on Serial every 5 s; local sensing + Serial CSV continue; **nothing is sent, nothing fabricated** |
+| Wi-Fi lost | Credentials are NEVER erased (S05 guarantee); readings buffer (240 slots ≈ 4 min) and flush on reconnect with their ORIGINAL `timestamp_ms` values |
+| Buffer overflow while offline | Oldest readings dropped with an honest Serial note + cumulative `dropped_oldest` counter — loss is never silent |
+| Sensor failed/absent (DS18B20 fault, ADS1115 absent, XKC disabled) | Field sent as JSON `null` / Serial `NA` — never a default or fake value |
+| HTTP 401 | Batch dropped (retrying identical bytes cannot succeed) + Serial hint to re-provision the token |
+| HTTP 4xx (400/413) | Batch dropped, rejection body logged (server-side reason, e.g. out-of-range row) |
+| HTTP 5xx / network error | Batch KEPT in buffer; exponential backoff up to 60 s |
+
+Transport is bounded: 5 s connect + 5 s transfer timeouts, so the 1 Hz
+sensor loop and the provisioning portal are never blocked indefinitely.
+Serial output preserves the locked CSV contract
+(`timestamp_ms,temperature_c,ph,ph_voltage_v,light_relative_pct,light_voltage_v,xkc_level_state`,
+`NA` for absent channels) for the host collector in parallel with Wi-Fi.
+
 ## Security checks
 - search tracked firmware for `WIFI_SSID` and `WIFI_PASSWORD`; there should be no credential constants;
 - do not print form password/token values;
