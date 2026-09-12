@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S14 (S01-S13 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S13 fully validated host-side; S13 prepared-only, execution pending hardware)
+- Current session for a fresh repo: S15 (S01-S14 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S14 fully validated host-side; S13-S14 prepared/designed-only, execution pending hardware)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -304,26 +304,26 @@
 **Resume pointer:** Proceed to S14 (Temperature Response Experiment) - also expected to close on the prepare path until hardware exists; reuse `backend/analysis/stability.py` and `scripts/dryrun_pipeline_mock.py` patterns. Outstanding hardware follow-ups unchanged (S04-S08 captures; S13 EXP01 execution).
 
 ## Session 14 - Temperature Response Experiment
-**Status:** NOT_STARTED
+**Status:** COMPLETE (designed; real run pending hardware - see deviation)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S14/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S14/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `experiments/EXP02_TEMP_RESPONSE.md` (new: full design for a manual/external controlled temperature-response run - three permitted manual intervention options (warm-water addition <= 5 % volume, heater's own thermostat setpoint step, passive room cooling), explicit prohibitions (no automated heater control claims, no student-built mains switching, no automatic dosing), hard safety abort limits (28.5 C / 23.0 C / sensor-fault burst), manual experiment markers (pre/intervention/restore), valid-only analysis metrics (max dT/dt per 10 min, time-to-peak, peak delta, recovery-to-band time, TEMP_* event cross-check), acceptance criteria, Results left _pending_, integrity rules), `scripts/dryrun_pipeline_mock.py` (extended: temp_excursion scenario + mock chart generation confined to data/mock), `.gitignore` (data/mock/*.png), `TASKS.md`, `evidence/S14/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S14/validation_output.txt` (2026-09-12). Design-integrity audit PASS: forbidden-hardware terms appear only in the explicit not-measured prohibition; every 'automated/control/switch' mention is a prohibition or refers to the appliance's own rated control - zero automated-control claims. MOCK DRY-RUN (labeled SYNTHETIC, tool check only): temp_excursion 180 rows -> 152 events (TEMP_OUT_OF_RANGE + TEMP_CRITICAL across the planted 33.5 C spike), metrics show max 33.5 C vs baseline 24.6-26.4 C, charts written and verified gitignored under data/mock. Full suite 64 passed; provisioning policy PASSED.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (per user full-authority rush directive; same pattern as S13): real temperature-response run requires the assembled rig, a populated tank and a PASSED EXP01 baseline - none possible without the unattached ESP32-S3 hardware. Session closed on the DESIGN path: complete run-ready protocol + validated toolchain; no invented data, Results _pending_. Pending on hardware: execute EXP02 per protocol after EXP01 passes.
 
-**Commit:** _pending_
+**Commit:** `S14 temperature response experiment`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S15 (pH Perturbation Experiment) - expected to close on the design path as well; reuse the EXP02 structure (manual intervention only, markers, valid-only metrics, mock dry-run with the ph_drift scenario). Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01/EXP02 execution).
 
 ## Session 15 - pH Perturbation Experiment
 **Status:** NOT_STARTED

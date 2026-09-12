@@ -1,0 +1,66 @@
+== Session 14 validation - 2026-09-12T03:13:34Z ==
+
+[1] EXP02 design-integrity audit
+  a) forbidden-hardware terms appear only in forbidden/out-of-scope prose:
+22:- ORP, EC/conductivity, ZP4510 float state and FS300A flow are not
+  b) no automated-control claims (every 'control'/'switch' mention is a prohibition or appliance's own rated control):
+15:- Any claim of automated heater control. The system is monitoring-only; it
+16:  never switches the heater.
+17:- Student-built mains-voltage switching, relays or smart-plug automation
+21:- No automatic dosing of any kind.
+41:   manually returns it. All switching is the appliance's own rated
+42:   control — no project-built switching.
+114:- The write-up must never claim the project controls the heater; wording
+
+[2] MOCK DRY-RUN incl. temp_excursion (tool check only - SYNTHETIC, NOT results)
+======================================================================
+DRY-RUN ON SYNTHETIC MOCK DATA - NOT REAL TELEMETRY - NOT RESULTS
+======================================================================
+--- mock baseline: rows=120 events=0 ---
+               label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-baseline      channel      temperature_c       120.0      100.0 25.499  0.575 24.583 26.447
+MOCK-DRYRUN-baseline      channel                 ph       120.0      100.0  8.202  0.077  8.074  8.328
+MOCK-DRYRUN-baseline      channel light_relative_pct       120.0      100.0 78.647 13.853 50.000 95.000
+MOCK-DRYRUN-baseline completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-baseline       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+
+--- mock faults: rows=40 events=20 ---
+             label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-faults      channel      temperature_c        30.0       75.0 26.089  0.256 25.542 26.447
+MOCK-DRYRUN-faults      channel                 ph        30.0       75.0  8.285  0.019  8.255  8.328
+MOCK-DRYRUN-faults      channel light_relative_pct        30.0       75.0 70.510 11.637 50.000 87.740
+MOCK-DRYRUN-faults completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-faults       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+
+--- mock excursion: rows=180 events=152 ---
+                label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-excursion      channel      temperature_c       180.0      100.0 30.097  2.535 25.500 33.500
+MOCK-DRYRUN-excursion      channel                 ph       180.0      100.0  8.200  0.071  8.074  8.328
+MOCK-DRYRUN-excursion      channel light_relative_pct       180.0      100.0 59.674 30.222  5.020 95.000
+MOCK-DRYRUN-excursion completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-excursion       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+
+mock manual rows: 12 metrics=['ammonia_mg_l', 'salinity_sg']
+
+Dry-run complete. Outputs under data/mock/ (gitignored) must never be copied into data/raw, experiments/results or reports.
+exit=0
+
+[3] Full test suite (pytest tests -q)
+................................................................         [100%]
+64 passed in 3.41s
+exit=0
+
+[4] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[5] Status: EXP02 DESIGNED - EXECUTION PENDING HARDWARE. Results table _pending_;
+    mock charts stayed in gitignored data/mock (verified below).
+MOCK-CHARTS-IGNORED-OK
+ M .gitignore
+ M scripts/dryrun_pipeline_mock.py
+?? evidence/S14/
+?? experiments/EXP02_TEMP_RESPONSE.md

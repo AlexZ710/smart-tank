@@ -17,6 +17,7 @@ import pandas as pd
 from backend.analysis.stability import analyze
 from backend.collector.clean_data import clean
 from backend.rules.rules import run as run_rules
+from backend.visualization.visualize import plot_series
 from scripts.generate_mock_telemetry import generate, generate_manual
 
 MOCK = Path("data/mock")
@@ -29,7 +30,8 @@ def main() -> None:
     print("=" * 70)
 
     for name, scenario, rows in (("baseline", "baseline", 120),
-                                 ("faults", "sensor_faults", 40)):
+                                 ("faults", "sensor_faults", 40),
+                                 ("excursion", "temp_excursion", 180)):
         raw = MOCK / f"mock_raw_{name}.csv"
         raw.write_text("\n".join(generate(scenario, rows)) + "\n",
                        encoding="utf-8")
@@ -42,6 +44,8 @@ def main() -> None:
                 "mean", "std", "min", "max"]
         print(metrics[[c for c in cols if c in metrics.columns]]
               .to_string(index=False))
+        charts = plot_series(cleaned, out_dir=MOCK)
+        print(f"charts (MOCK, stay in data/mock): {[p.name for p in charts]}")
         print()
 
     manual_path = MOCK / "mock_manual.csv"
