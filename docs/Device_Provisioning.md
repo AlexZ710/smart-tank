@@ -3,6 +3,18 @@
 ## Why this exists
 Smart Tank must not require a firmware edit whenever Wi-Fi changes.
 
+## Related guides
+- `01_Project_Documentation/WiFi_Provisioning_Architecture.md` - normative
+  architecture (SoftAP, captive portal, NVS keys, secret-handling rules);
+- `02_Hardware_Bringup/First_Boot_WiFi_Provisioning_Guide.md` - student
+  step-by-step workflow (upload -> join SoftAP -> save -> station boot) and
+  the recovery matrix;
+- `docs/Arduino_Environment.md` - toolchain, FQBN and upload commands used
+  for all provisioning sketches;
+- `scripts/validate_wifi_provisioning.py` - automated policy check run in
+  every session (no hardcoded credentials, module present in all Wi-Fi
+  sketches).
+
 ## Where the framework lives (Session 05)
 The reusable provisioning module `WifiProvisioning.h/.cpp`
 (class `SmartTankProvisioning`) exists as identical copies in every
