@@ -27,8 +27,20 @@ from the repo root) and set `DATABASE_URL` in `.env.local`.
 | `/events` | honest placeholder | S26 |
 | `/reports` | honest placeholder | S26 |
 | `/system` | honest placeholder | S24 |
-| `GET /api/health` | live (db configured/connected probe, credential-scrubbed) | S21 |
-| `POST /api/telemetry`, `GET latest/history` | starter stubs — replaced to match the frozen contract | S22 |
+| `GET /api/health` | live — contract shape `{status, database: up/down, version}` (S22) | S21+S22 |
+| `POST /api/telemetry` | live — Bearer DEVICE_INGEST_TOKEN (timing-safe), contract ranges, forbidden fields → 400, batch cap 500 → 413, rate limit → 429, partial success `{accepted, rejected[]}`, null stored as NULL, honest 503 when DB down ("readings NOT stored") | S22 |
+| `GET /api/telemetry/latest` | live — newest per device + six-state channels; `{"devices": []}` when empty | S22 |
+| `GET /api/telemetry/history` | live — `from`/`to` required, channel whitelist, limit ≤ 5000, ascending, gaps never interpolated | S22 |
+
+Tests: `npm test` (node:test, no extra deps) — contract validation matrix,
+rate limiter, data-state semantics. Live DB round-trip (actual INSERT +
+read-back) is pending a working Docker engine on the host (S20 blocker:
+WSL not installed); all DB-dependent paths are validated to degrade
+honestly with 503 instead of fabricating success.
+
+Rate limit: 120 req/min per source, in-memory per instance (single-instance
+deployment; a shared store is required before multi-instance public demo —
+S27 hardening item).
 
 ## Honesty rules (frozen, apply to every page)
 

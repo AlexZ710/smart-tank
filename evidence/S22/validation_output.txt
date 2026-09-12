@@ -1,0 +1,115 @@
+S22 validation - Authenticated Telemetry Ingestion API - 2026-09-12T04:58:04Z
+Host: Windows, Node v26.4.0. Frozen reference: docs/Telemetry_Contract.md.
+DB status on this host: engine unavailable (S20 blocker, WSL not installed) -> DB-dependent paths validated for HONEST degradation (503, never fake success). Live INSERT round-trip deferred.
+
+[1] Web unit tests (node --test: contract validation, rate limiter, data states)
+✔ allows up to max within window, then blocks (1.8488ms)
+✔ window slides: oldest hit expires (0.3516ms)
+✔ keys are independent (0.305ms)
+✔ retryAfterS reports whole seconds until the window frees (0.3669ms)
+✔ reset clears state (0.2528ms)
+✔ STALE_AFTER_S defaults to 180 (env-overridable) (2.0876ms)
+✔ null value -> MISSING (never zero, never blank-as-normal) (0.2486ms)
+✔ optional channel (XKC) null -> OPTIONAL_ABSENT (0.1995ms)
+✔ age boundary: <= STALE_AFTER_S is CURRENT, beyond is STALE (0.155ms)
+✔ unknown age with a value -> MISSING (honest, not CURRENT) (0.2786ms)
+✔ ageLabel formats honestly (0.2761ms)
+✔ valid full payload accepted (3.5282ms)
+✔ ph_voltage_v validated but not stored (CSV-pipeline only) (0.582ms)
+✔ xkc_level_state accepts 0, 1, null; rejects everything else (0.6815ms)
+✔ missing channel key row-rejected - never defaulted to null (0.2475ms)
+✔ range boundaries inclusive; out-of-range row-rejected (never clamped) (0.8474ms)
+✔ NaN/Infinity/string numbers row-rejected (0.2993ms)
+✔ timestamp_ms must be integer > 0 (0.4226ms)
+✔ device_id rules: non-empty, <= 64 chars (0.3099ms)
+✔ malformed payloads -> 400 (0.3472ms)
+✔ batch over 500 -> 413; exactly 500 -> 200 (8.21ms)
+✔ forbidden fields reject the WHOLE request with 400 (0.9228ms)
+✔ unknown extra fields ignored (forward compatibility) (0.2921ms)
+✔ partial success: per-row independence (1.2391ms)
+✔ firmware_version: optional, defaults to honest 'unknown' marker (0.2809ms)
+ℹ tests 25
+ℹ pass 25
+ℹ fail 0
+exit=0
+
+[2] Production build
+✓ Generating static pages using 13 workers (7/7) in 1358ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/health
+├ ƒ /api/telemetry
+├ ƒ /api/telemetry/history
+├ ƒ /api/telemetry/latest
+├ ○ /events
+├ ○ /experiments
+├ ○ /history
+├ ○ /reports
+└ ○ /system
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[3] Live contract matrix (production server, DEVICE_INGEST_TOKEN set, DATABASE_URL unset)
+POST no token        -> 401 {"error":"unauthorized"}
+POST wrong token     -> 401 {"error":"unauthorized"}
+POST malformed JSON  -> 400 {"error":"malformed JSON body"}
+POST forbidden orp   -> 400 {"error":"forbidden field: orp_mv (ORP sensor absent from hardware baseline)"}
+POST forbidden EC    -> 400 {"error":"forbidden field: conductivity_us (EC/conductivity sensor absent from hardware baseline)"}
+POST batch 501       -> 413 {"error":"batch too large: 501 > 500 readings max"}
+POST valid (no DB)   -> 503 {"error":"database unavailable - readings NOT stored","detail":"DATABASE_URL is not configured"}
+POST ph out of range -> 200 {"accepted":0,"rejected":[{"index":0,"error":"ph=99 out of range 0..14 (rejected, never clamped)"}]}
+POST all rows bad    -> 200 {"accepted":0,"rejected":[{"index":0,"error":"timestamp_ms must be an integer > 0 (device millis())"}]}
+GET  health          -> 200 {"status":"degraded","database":"down","version":"0.2.0-s22","detail":"DATABASE_URL not configured (see .env.example)","checked_at":"2026-09-12T04:58:33.116Z"}
+GET  latest (no DB)  -> 503 {"devices":[],"error":"database unavailable","detail":"DATABASE_URL is not configured"}
+GET  hist no args    -> 400 {"error":"from and to (ISO-8601) are required"}
+GET  hist limit>max  -> 400 {"error":"limit must be an integer 1..5000 (over-max rejected per contract)"}
+GET  hist bad chan   -> 400 {"error":"unknown channel; allowed: timestamp_ms, temperature_c, ph, light_relative_pct, light_voltage_v, water_level_state"}
+GET  hist valid      -> 503 {"rows":[],"error":"database unavailable","detail":"DATABASE_URL is not configured"}
+POST x125 rapid      -> last code 429 (expect 429)
+429 body             -> {"error":"rate limited","retry_after_s":50}
+exit=0
+(server stopped pid=5608)
+
+[4] Bundle secret scan (client .next/static + server actual-value scan)
+s22-local-test-token-only -> client:0 server:0
+sk-sp- -> client:0 server:0
+AI-key -> client:0 server:0
+postgres:// -> client:0 server:0
+smart_tank_dev_only -> client:0 server:0
+replace-with-long-random -> client:0 server:0
+DEVICE_INGEST_TOKEN -> client:0 server:2
+DATABASE_URL -> client:0 server:6
+AI_API_KEY -> client:0 server:0
+note: server-side occurrences of the env-var NAMES (process.env.DEVICE_INGEST_TOKEN) are expected and safe; VALUES must be 0 everywhere.
+exit=0
+
+[5] Forbidden-term audit of S22 sources (residuals must be rejection prose)
+web/lib/validation.ts:8://    ZP4510/FS300A float, lux/PAR/PPFD units, auto-dosing, plus the
+web/tests/validation.test.ts:149:    "orp_mv", "conductivity_us", "ec", "ec_us_cm", "flow_lpm",
+web/tests/validation.test.ts:150:    "zp4510_state", "fs300a_flow", "float_state", "lux", "par_umol",
+web/tests/validation.test.ts:151:    "ppfd", "dosing_status", "salinity_sg", "ammonia_mg_l",
+non_rejection_hits_exit=0
+
+[6] Standing gates: pytest + provisioning policy
+..................                                                       [100%]
+90 passed in 4.53s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[7] Hygiene: no artifacts/secrets staged
+leak_hits_exit=1 (1 = zero = PASS)
+
+[5a] Manual disposition of [5] residual hits (authoritative)
+web/lib/validation.ts:8 -> header comment quoting the contract's forbidden-field list = REJECTION prose (allowed).
+web/tests/validation.test.ts:149-151 -> forbidden-key NEGATIVE test fixtures (each asserted to produce 400) = rejection fixtures (allowed, same pattern as S12 Python tests).
+Disposition: 0 affirmative forbidden-sensor claims -> PASS.
+[4a] Bundle-scan note: server-bundle hits for DEVICE_INGEST_TOKEN (2 files) / DATABASE_URL (6 files) are process.env NAME references in server-only code (expected per architecture: server-side only); zero secret VALUES in any bundle. PASS.
+exit=0

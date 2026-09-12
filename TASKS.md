@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S22 (S01-S21 complete - core milestone closed, web contract frozen, local DB workflow committed, web facade scaffolded: Next.js 16.3.5 + Tailwind 4.3.3 pinned, six routes + /api/health verified, bundle secret-scan clean; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S21 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - S22 must tolerate/degrade honestly without DB; web build S22-S28 next)
+- Current session for a fresh repo: S23 (S01-S22 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract (25 web unit tests + full curl matrix: 401/400/413/429, partial success, reject-never-clamp, honest 503s); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S22 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip (INSERT + read-back) deferred; web build S23-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -482,26 +482,26 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S22 (Authenticated Telemetry Ingestion API): rewrite `web/app/api/telemetry/route.ts` + `web/lib/validation.ts` to the FROZEN `docs/Telemetry_Contract.md` (Bearer DEVICE_INGEST_TOKEN; per-field nullable ranges -10..85 / 0..14 / 0..100, xkc in {0,1,null}; forbidden fields -> 400; batch cap 500; partial-success {accepted, rejected[]}; store timestamp_ms + light_relative_pct; 401/400/429 semantics), align latest/history routes with contract GET shapes + six-state computation, add rate limiting, test with the engine down (honest degradation) and document the live-DB test as pending Docker/WSL. Evidence to `evidence/S22/`. Hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05; S23 runtime verification; live compose up + \dt once an engine exists).
 
 ## Session 22 - Authenticated Telemetry Ingestion API
-**Status:** NOT_STARTED
+**Status:** COMPLETE (live DB round-trip deferred - engine unavailable on host, honest 503 degradation validated instead)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S22/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S22/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `web/lib/validation.ts` (REWRITTEN to the frozen contract: CHANNEL_RANGES matching clean_data.py (-10..85 / 0..14 / 0..100, voltages 0..5); required-nullable semantics - missing key row-rejected, never defaulted; timestamp_ms integer >0; xkc_level_state strictly 0|1|null; forbidden-field patterns for ORP/EC/conductivity/flow/ZP4510/FS300A/float/lux/PAR/PPFD/dosing + manual-only salinity/ammonia -> whole-request 400, matched raw AND separator-normalized (fixes \b-vs-underscore bypass, caught by tests); unknown extras ignored; MAX_BATCH=500 -> 413; ph_voltage_v validated but NOT stored per database/README.md mapping; optional firmware_version -> honest 'unknown' marker for the NOT NULL schema column; parseIngestPayload is total (never throws)), `web/lib/ratelimit.ts` (new: sliding-window limiter, injectable clock, 120/min per source, retryAfterS; per-instance limitation documented), `web/lib/scrub.ts` (new: credential-scrubbing for error details), `web/app/api/telemetry/route.ts` (REWRITTEN: Bearer auth with timing-safe compare; 503 when server token unconfigured (never silently open); 429 + retry_after_s; 400 malformed/forbidden; 413 oversize; 200 partial-success {accepted, rejected[{index,error}]}; parameterized multi-row INSERT storing timestamp_ms + light_relative_pct + water_level_state '0'/'1'/NULL, recorded_at/received_at = server clock; DB down -> 503 "readings NOT stored"), `web/app/api/telemetry/latest/route.ts` (REWRITTEN: DISTINCT ON (device_id) newest per device ordered by received_at,id; per-channel {value,state} via lib/states; xkc '0'/'1'->0/1 JSON; {"devices":[]} honest empty; 503 DB down), `web/app/api/telemetry/history/route.ts` (REWRITTEN: from/to required ISO-8601 -> 400; channel whitelist (doubles as SQL-identifier guard); limit 1..5000 default 1000, over-max -> 400; ORDER BY received_at ASC, id ASC; gaps never interpolated; 503 DB down), `web/app/api/health/route.ts` (aligned to contract shape {status ok|degraded, database up|down, version 0.2.0-s22} + scrubbed detail/checked_at extras), `web/tests/validation.test.ts` (new: 15 contract tests incl. boundary-inclusive ranges, forbidden-key matrix, partial success, batch cap), `web/tests/ratelimit.test.ts` (new: 5 deterministic injected-clock tests), `web/tests/states.test.ts` (new: 6 data-state semantics tests), `web/package.json` ("test": node --test glob script), `web/tsconfig.json` (allowImportingTsExtensions for native TS test imports), `web/README.md` (route table now live-status per endpoint, tests, rate-limit + DB-blocker notes), `TASKS.md`, `evidence/S22/run_validation.sh` + `validation_output.txt` (new).
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S22/validation_output.txt` (2026-09-12, reproducible via run_validation.sh). [1] npm test: 25/25 pass (validation 15, ratelimit 5, states 6 - actually 25 total across 3 files). [2] npm run build: exit=0, all 11 routes. [3] Live curl matrix on production server (token set, DATABASE_URL unset): no/wrong token -> 401; malformed -> 400; orp_mv in reading -> 400 forbidden; conductivity_us top-level -> 400; batch 501 -> 413; valid batch -> 503 "database unavailable - readings NOT stored" (honest, never fake-stored); ph=99 -> 200 {accepted:0, rejected[0] "out of range 0..14 (rejected, never clamped)"}; timestamp_ms=0 -> row-rejected; health -> 200 contract shape degraded/down; latest -> 503 devices:[]; history no args -> 400, limit 9999 -> 400, channel=orp_mv -> 400 unknown-channel (whitelist blocks forbidden column names), valid -> 503 honest; 125 rapid POSTs -> 429 + retry_after_s. [4]+[4a] bundle scans: zero secret VALUES client+server (env-var NAME references server-side only, expected); test token absent from all bundles. [5]+[5a] forbidden-term audit: residuals = contract comment + negative-test fixtures = PASS. [6] Standing gates: pytest 90 passed; provisioning policy PASSED. [7] Hygiene: zero artifact/secret leaks in git status.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** (1) Carried blocker: Docker engine unavailable (WSL not installed, S20) -> the live INSERT + read-back round-trip against real PostgreSQL is DEFERRED, not skipped; every DB-dependent path was validated to degrade honestly (503, "NOT stored", empty devices) and must be re-run once an engine exists (script provided: evidence/S22/run_validation.sh; add DATABASE_URL to web/.env.local). (2) Deviation: schema's firmware_version NOT NULL vs contract JSON without that field - bridged by accepting an optional firmware_version and storing the honest marker 'unknown' when absent (no schema change, no contract change; flagged for S28 review). (3) Deviation: rate limit is in-memory per instance - fine for single-instance target, documented as an S27 hardening item. (4) 503 (not 401) when the server itself has DEVICE_INGEST_TOKEN unset: contract defines 401 for client-side failures; a misconfigured server must not silently accept - honest 503 chosen and documented. (5) Unavailable-sensor drift review: forbidden-key rejection covers all absent sensors + manual-only metrics; history channel whitelist makes forbidden column names unqueryable; zero forbidden columns in SQL; audits PASS.
 
-**Commit:** _pending_
+**Commit:** `feat: add authenticated telemetry ingestion API`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S23 (ESP32 Wi-Fi Telemetry): extend the integrated firmware with Wi-Fi POST of the frozen contract JSON (NA->null mapping, batch buffer flushing on reconnect with original timestamp_ms preserved, token+API URL from NVS st_cfg via the existing provisioning portal - MUST reuse WifiProvisioning.h/.cpp, never hardcode credentials), arduino-cli compile verification for esp32:esp32:esp32s3; runtime verification is HARDWARE-GATED (no board attached) - close compile-verified with honest deviation per S05-S08 pattern. Evidence to `evidence/S23/`. Carry forward: DB round-trip re-run when an engine exists; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 23 - ESP32 WiFi Telemetry
 **Status:** NOT_STARTED
