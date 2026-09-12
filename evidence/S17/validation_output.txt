@@ -1,0 +1,42 @@
+== Session 17 validation - 2026-09-12T03:32:27Z ==
+
+[1] Regenerate results table (python scripts/make_results.py)
+wrote docs\results_table.csv (12 rows)
+                 item        metric                                    value unit                              source                               status
+        temperature_c       summary                                                    data\clean\reef_data_clean.csv PENDING (no real telemetry captured)
+                   ph       summary                                                    data\clean\reef_data_clean.csv PENDING (no real telemetry captured)
+   light_relative_pct       summary                                                    data\clean\reef_data_clean.csv PENDING (no real telemetry captured)
+              capture       summary                                                    data\clean\reef_data_clean.csv PENDING (no real telemetry captured)
+          salinity_sg manual_latest                                               data/manual/manual_measurements.csv      PENDING (no manual entries yet)
+         ammonia_mg_l manual_latest                                               data/manual/manual_measurements.csv      PENDING (no manual entries yet)
+    observation_score manual_latest                                               data/manual/manual_measurements.csv      PENDING (no manual entries yet)
+       EXP01_baseline    run_status  protocol prepared; run pending hardware                             experiments/                              PENDING
+  EXP02_temp_response    run_status    design complete; run pending hardware                             experiments/                              PENDING
+EXP03_ph_perturbation    run_status    design complete; run pending hardware                             experiments/                              PENDING
+ EXP04_salinity_drift    run_status protocol prepared; campaign pending tank                             experiments/                              PENDING
+   EXP05_organic_load    run_status protocol prepared; campaign pending tank                             experiments/                              PENDING
+exit=0
+
+[2] Reproducibility: second run -> identical docs/results_table.csv
+1a19fcc188743d38eccbe7a7609ebbf6203459f6d47456eed2b0de707800a353 *docs/results_table.csv
+1a19fcc188743d38eccbe7a7609ebbf6203459f6d47456eed2b0de707800a353 *docs/results_table.csv
+
+[3] No fabricated values: no row may be 'computed'/'recorded' while sources are empty
+0
+(0 = OK; grep exit 1 means zero matches)
+
+[4] Full test suite (pytest tests -q)
+........................................................................ [ 80%]
+..................                                                       [100%]
+90 passed in 3.67s
+exit=0
+
+[5] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[6] Integrity audit: forbidden terms in S17 deliverables appear only in prohibition prose
+docs/discussion_draft.md:41:Unavailable and forbidden anywhere in results: ORP, EC/conductivity,
+docs/discussion_draft.md:42:ZP4510 float state, FS300A flow, any auto-dosing outcome.
+
+[7] Status: discussion draft + results table are PENDING skeletons; no real data exists yet.

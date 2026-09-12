@@ -1,0 +1,13 @@
+item,metric,value,unit,source,status
+temperature_c,summary,,,data\clean\reef_data_clean.csv,PENDING (no real telemetry captured)
+ph,summary,,,data\clean\reef_data_clean.csv,PENDING (no real telemetry captured)
+light_relative_pct,summary,,,data\clean\reef_data_clean.csv,PENDING (no real telemetry captured)
+capture,summary,,,data\clean\reef_data_clean.csv,PENDING (no real telemetry captured)
+salinity_sg,manual_latest,,,data/manual/manual_measurements.csv,PENDING (no manual entries yet)
+ammonia_mg_l,manual_latest,,,data/manual/manual_measurements.csv,PENDING (no manual entries yet)
+observation_score,manual_latest,,,data/manual/manual_measurements.csv,PENDING (no manual entries yet)
+EXP01_baseline,run_status,protocol prepared; run pending hardware,,experiments/,PENDING
+EXP02_temp_response,run_status,design complete; run pending hardware,,experiments/,PENDING
+EXP03_ph_perturbation,run_status,design complete; run pending hardware,,experiments/,PENDING
+EXP04_salinity_drift,run_status,protocol prepared; campaign pending tank,,experiments/,PENDING
+EXP05_organic_load,run_status,protocol prepared; campaign pending tank,,experiments/,PENDING

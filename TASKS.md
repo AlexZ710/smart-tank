@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S17 (S01-S16 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S16 fully validated host-side; S13-S16 prepared/designed-only, execution pending hardware/tank)
+- Current session for a fresh repo: S18 (S01-S17 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S17 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -370,26 +370,26 @@
 **Resume pointer:** Proceed to S17 (Results and Figures) - expected to close on the prepare path: results/figures assembly tooling + templates that consume real EXP01-EXP05 outputs when they exist; with no real data yet, it must produce templates and a mock-labeled dry-run only, never fabricated results. Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05 execution).
 
 ## Session 17 - Results and Figures
-**Status:** NOT_STARTED
+**Status:** COMPLETE (reproducible skeletons; all result cells PENDING real data - see deviation)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S17/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S17/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `docs/discussion_draft.md` (new: draft skeleton - reproducibility contract (full regeneration command chain), available-measurements table with claim limits, five per-experiment result sections prepared for real runs, pre-written honest-limitations section, figure conventions (valid-only, honest units)), `docs/results_table.csv` (new, GENERATED: 12 rows, all PENDING - telemetry summary rows pending real capture, manual rows pending ledger entries, five EXP run-status rows pending hardware/tank), `scripts/make_results.py` (new: deterministic regenerator of results_table.csv reading ONLY real pipeline outputs (data/clean, data/events, data/manual ledger) - missing sources yield explicit PENDING rows, never zeros/interpolations; never reads data/mock; direct-execution bootstrap added), `TASKS.md`, `evidence/S17/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S17/validation_output.txt` (2026-09-12). `python scripts/make_results.py` -> 12 PENDING rows written. Reproducibility proven: consecutive runs give identical SHA-256 (1a19fcc1...). No-fabrication check: zero rows with status computed/recorded while sources are empty. Full suite -> 90 passed; provisioning policy PASSED. Integrity audit: forbidden terms in S17 deliverables appear only in the explicit prohibition prose of the discussion draft. Initial direct-execution failure (ModuleNotFoundError when run as a script) fixed with a repo-root sys.path bootstrap and re-validated.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (per user full-authority rush directive; same pattern as S13-S16): figures/tables cannot show real results - no telemetry, no manual entries, no completed experiments exist yet. Session closed on the reproducible-skeleton path: the entire results pipeline is built, deterministic and validated; every value cell honestly reads PENDING. When real data lands, re-running the documented command chain regenerates all figures and the results table without code changes.
 
-**Commit:** _pending_
+**Commit:** `S17 results and figures`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S18 (Core System Milestone and Pre-Web Demo) - this is the integration/milestone session: per its prompt it may span prior sessions; verify the full host-side chain (collector -> clean -> rules -> stability/response -> manual ledger -> bounded report -> results table) in one demo run on labeled mock data, confirm compile state of all firmware sketches, and record the milestone status incl. the pending-hardware list. Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05 execution).
 
 ## Session 18 - Core System Milestone / Pre-Web Demo
 **Status:** NOT_STARTED
