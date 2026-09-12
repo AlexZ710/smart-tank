@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S15 (S01-S14 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S14 fully validated host-side; S13-S14 prepared/designed-only, execution pending hardware)
+- Current session for a fresh repo: S16 (S01-S15 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S15 fully validated host-side; S13-S15 prepared/designed-only, execution pending hardware)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -326,26 +326,26 @@
 **Resume pointer:** Proceed to S15 (pH Perturbation Experiment) - expected to close on the design path as well; reuse the EXP02 structure (manual intervention only, markers, valid-only metrics, mock dry-run with the ph_drift scenario). Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01/EXP02 execution).
 
 ## Session 15 - pH Perturbation Experiment
-**Status:** NOT_STARTED
+**Status:** COMPLETE (designed; real run pending hardware - see deviation)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S15/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S15/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `experiments/EXP03_PH_PERTURBATION.md` (new: controlled small-step MANUAL pH perturbation design - two intervention options (passive aeration change preferred; or one pre-diluted manufacturer-dosed buffer pour for 5 L), explicit HARD stop conditions (pH <= 7.8 or >= 8.6 on 2 consecutive valid readings, any PH_CRITICAL event, > 0.2 pH/10 min rate, sensor-fault burst, livestock stress), abort procedure, mandatory recovery log table, valid-only analysis metrics, calibration-within-48h precondition, Results _pending_, integrity rules banning automatic-dosing claims and mock data in results), `backend/analysis/response.py` (new: shared EXP02/EXP03 response metrics - valid-only series extraction, pre-segment stats, max |rate| per 10 min via two-pointer window, peak deviation + time-to-peak, recovery time with band-hold requirement; all-None outputs for all-invalid input, never fabricated), `tests/test_response.py` (new, 11 tests), `scripts/dryrun_pipeline_mock.py` (extended: ph_drift scenario + EXP02/EXP03-style response_report dry-run), `TASKS.md`, `evidence/S15/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S15/validation_output.txt` (2026-09-12). `pytest tests/test_response.py -v` -> 11 passed; full suite -> 75 passed (no regressions). Design-integrity audit PASS: forbidden-hardware terms only in the explicit not-measured prohibition; every dosing/control mention is a prohibition or manual-only instruction. Provisioning policy PASSED. MOCK DRY-RUN (labeled SYNTHETIC, tool check only): ph_drift 180 rows -> 146 events; EXP03-style response_report on mock shows pre_mean 8.256, peak_delta -1.456, time_to_peak 1.18 min, max_rate 1.456/10 min; recovery_time None is the honest result (mock segment ends before a full hold window). EXP02-style metrics computed likewise on temp_excursion. Mock outputs verified gitignored.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (per user full-authority rush directive; same pattern as S13/S14): real pH perturbation requires the assembled rig, a PASSED EXP01, a populated tank and a freshly calibrated SEN0161-V2 (S07 buffer calibration still pending hardware). Session closed on the DESIGN path: complete run-ready protocol + validated shared response-metric toolchain; no invented data, Results _pending_.
 
-**Commit:** _pending_
+**Commit:** `S15 ph perturbation experiment`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S16 (Manual Salinity Drift and Organic Load Risk) - manual-measurement-only session (salinity SG + ammonia via `manual_measurements`); can be prepared host-side with a record template + risk-review protocol, execution still needs a real tank. Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP03 execution).
 
 ## Session 16 - Manual Salinity Drift and Organic Load Risk
 **Status:** NOT_STARTED

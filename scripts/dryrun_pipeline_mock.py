@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from backend.analysis.response import response_report
 from backend.analysis.stability import analyze
 from backend.collector.clean_data import clean
 from backend.rules.rules import run as run_rules
@@ -31,7 +32,8 @@ def main() -> None:
 
     for name, scenario, rows in (("baseline", "baseline", 120),
                                  ("faults", "sensor_faults", 40),
-                                 ("excursion", "temp_excursion", 180)):
+                                 ("excursion", "temp_excursion", 180),
+                                 ("phdrift", "ph_drift", 180)):
         raw = MOCK / f"mock_raw_{name}.csv"
         raw.write_text("\n".join(generate(scenario, rows)) + "\n",
                        encoding="utf-8")
@@ -46,6 +48,18 @@ def main() -> None:
               .to_string(index=False))
         charts = plot_series(cleaned, out_dir=MOCK)
         print(f"charts (MOCK, stay in data/mock): {[p.name for p in charts]}")
+        if name == "excursion":
+            rep = response_report(
+                cleaned, "temperature_c", "temperature_valid",
+                float(cleaned["timestamp_ms"].iloc[1]),  # mock: pre = first row
+                (24.0, 27.0), hold_min=1.0)
+            print(f"EXP02-style response_report (MOCK): {rep}")
+        if name == "phdrift":
+            rep = response_report(
+                cleaned, "ph", "ph_valid",
+                float(cleaned["timestamp_ms"].iloc[1]),  # mock: pre = first row
+                (8.0, 8.4), hold_min=1.0)
+            print(f"EXP03-style response_report (MOCK): {rep}")
         print()
 
     manual_path = MOCK / "mock_manual.csv"

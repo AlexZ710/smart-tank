@@ -1,0 +1,98 @@
+== Session 15 validation - 2026-09-12T03:18:37Z ==
+
+[1] Response-metric tests (pytest tests/test_response.py -v)
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- C:\Anaconda\envs\reef\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Alex1\Desktop\reeftank\smart-tank_BigBang\smart-tank\smart-tank
+collecting ... collected 11 items
+
+tests/test_response.py::test_valid_series_honors_flags PASSED            [  9%]
+tests/test_response.py::test_valid_series_absent_column PASSED           [ 18%]
+tests/test_response.py::test_pre_segment_stats PASSED                    [ 27%]
+tests/test_response.py::test_pre_segment_stats_empty_before_marker PASSED [ 36%]
+tests/test_response.py::test_max_rate_bounded_by_ramp PASSED             [ 45%]
+tests/test_response.py::test_max_rate_none_for_short_series PASSED       [ 54%]
+tests/test_response.py::test_peak_deviation_and_time_to_peak PASSED      [ 63%]
+tests/test_response.py::test_recovery_time_measured_from_peak PASSED     [ 72%]
+tests/test_response.py::test_recovery_none_when_never_back_in_band PASSED [ 81%]
+tests/test_response.py::test_response_report_end_to_end PASSED           [ 90%]
+tests/test_response.py::test_response_report_all_invalid_yields_nones_not_fabrication PASSED [100%]
+
+============================= 11 passed in 1.13s ==============================
+exit=0
+
+[2] Full test suite (pytest tests -q)
+........................................................................ [ 96%]
+...                                                                      [100%]
+75 passed in 3.46s
+exit=0
+
+[3] EXP03 design-integrity audit
+  a) forbidden-hardware terms only in prohibition prose:
+18:- ORP, EC/conductivity, ZP4510 float state and FS300A flow are not
+  b) dosing/control mentions are all prohibitions or manual-only:
+10:Observe the tank's pH response to a **controlled small-step, manual**
+15:- Any automatic dosing. All additions are manual, measured, one-step.
+16:- Any claim of automated pH control. The system is monitoring-only.
+40:2. **Small-step buffer addition**: pre-dissolve the manufacturer's dose
+41:   for the ACTUAL tank volume (5 L; never dose by eye), further dilute in
+44:   product name, measured dose and dilution as manual entries/markers.
+47:analyze, the run may be repeated on another day — never stack doses
+82:measured dose + dilution, or aeration setup), operator_note`. Markers are
+131:- The write-up must never claim the project doses or controls pH; wording
+
+[4] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[5] MOCK DRY-RUN incl. ph_drift + EXP02/EXP03-style response metrics (SYNTHETIC, tool check only - NOT results)
+======================================================================
+DRY-RUN ON SYNTHETIC MOCK DATA - NOT REAL TELEMETRY - NOT RESULTS
+======================================================================
+--- mock baseline: rows=120 events=0 ---
+               label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-baseline      channel      temperature_c       120.0      100.0 25.499  0.575 24.583 26.447
+MOCK-DRYRUN-baseline      channel                 ph       120.0      100.0  8.202  0.077  8.074  8.328
+MOCK-DRYRUN-baseline      channel light_relative_pct       120.0      100.0 78.647 13.853 50.000 95.000
+MOCK-DRYRUN-baseline completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-baseline       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+
+--- mock faults: rows=40 events=20 ---
+             label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-faults      channel      temperature_c        30.0       75.0 26.089  0.256 25.542 26.447
+MOCK-DRYRUN-faults      channel                 ph        30.0       75.0  8.285  0.019  8.255  8.328
+MOCK-DRYRUN-faults      channel light_relative_pct        30.0       75.0 70.510 11.637 50.000 87.740
+MOCK-DRYRUN-faults completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-faults       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+
+--- mock excursion: rows=180 events=152 ---
+                label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-excursion      channel      temperature_c       180.0      100.0 30.097  2.535 25.500 33.500
+MOCK-DRYRUN-excursion      channel                 ph       180.0      100.0  8.200  0.071  8.074  8.328
+MOCK-DRYRUN-excursion      channel light_relative_pct       180.0      100.0 59.674 30.222  5.020 95.000
+MOCK-DRYRUN-excursion completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-excursion       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+EXP02-style response_report (MOCK): {'channel': 'temperature_c', 'pre_mean': 25.542, 'pre_std': 0.0, 'pre_rows': 1, 'max_rate_per_10min': 7.958, 'peak_delta': 7.958, 'peak_ts': 64000.0, 'time_to_peak_min': 1.03, 'recovery_time_min': None}
+
+--- mock phdrift: rows=180 events=146 ---
+              label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-phdrift      channel      temperature_c       180.0      100.0 25.673  0.551 24.583 26.447
+MOCK-DRYRUN-phdrift      channel                 ph       180.0      100.0  7.487  0.488  6.800  8.273
+MOCK-DRYRUN-phdrift      channel light_relative_pct       180.0      100.0 59.674 30.222  5.020 95.000
+MOCK-DRYRUN-phdrift completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-phdrift       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+charts (MOCK, stay in data/mock): ['temperature.png', 'ph.png', 'light_relative.png']
+EXP03-style response_report (MOCK): {'channel': 'ph', 'pre_mean': 8.256, 'pre_std': 0.0, 'pre_rows': 1, 'max_rate_per_10min': 1.456, 'peak_delta': -1.456, 'peak_ts': 73000.0, 'time_to_peak_min': 1.18, 'recovery_time_min': None}
+
+mock manual rows: 12 metrics=['ammonia_mg_l', 'salinity_sg']
+
+Dry-run complete. Outputs under data/mock/ (gitignored) must never be copied into data/raw, experiments/results or reports.
+exit=0
+
+[6] Status: EXP03 DESIGNED - EXECUTION PENDING HARDWARE (requires calibrated pH probe +
+    populated tank + PASSED EXP01). Results table _pending_; no invented data.
+MOCK-OUTPUTS-IGNORED-OK
