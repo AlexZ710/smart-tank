@@ -14,3 +14,5 @@ data/clean/*.csv
 !data/clean/.gitkeep
 data/events/*.csv
 !data/events/.gitkeep
+data/mock/*.csv
+!data/mock/.gitkeep

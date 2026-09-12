@@ -1,0 +1,250 @@
+== Session 13 validation - 2026-09-12T03:07:23Z ==
+
+[1] Stability tests (pytest tests/test_stability.py -v)
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- C:\Anaconda\envs\reef\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Alex1\Desktop\reeftank\smart-tank_BigBang\smart-tank\smart-tank
+collecting ... collected 10 items
+
+tests/test_stability.py::test_channel_stats_exclude_flagged_invalid PASSED [ 10%]
+tests/test_stability.py::test_channel_stats_absent_channel_returns_none PASSED [ 20%]
+tests/test_stability.py::test_channel_stats_all_invalid_gives_none_values_not_zeros PASSED [ 30%]
+tests/test_stability.py::test_completeness_expected_1hz PASSED           [ 40%]
+tests/test_stability.py::test_completeness_detects_gaps PASSED           [ 50%]
+tests/test_stability.py::test_event_counts_by_severity_and_code PASSED   [ 60%]
+tests/test_stability.py::test_event_counts_empty PASSED                  [ 70%]
+tests/test_stability.py::test_xkc_states_only_when_real PASSED           [ 80%]
+tests/test_stability.py::test_analyze_frame_shape_and_label PASSED       [ 90%]
+tests/test_stability.py::test_analyze_skips_absent_channels PASSED       [100%]
+
+============================= 10 passed in 1.02s ==============================
+exit=0
+
+[2] Full test suite (pytest tests -q)
+................................................................         [100%]
+64 passed in 3.44s
+exit=0
+
+[3] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[4] MOCK DRY-RUN (tool check only - SYNTHETIC data, NOT experimental results).
+    Generating mock baseline + sensor_faults, running clean -> rules -> stability:
+======================================================================
+SYNTHETIC MOCK DATA - NOT REAL TELEMETRY - hardware-free validation only
+======================================================================
+wrote 120 mock rows -> data\mock\mock_raw_baseline.csv
+wrote 12 mock manual rows -> data\mock\mock_manual.csv
+exit=0
+======================================================================
+SYNTHETIC MOCK DATA - NOT REAL TELEMETRY - hardware-free validation only
+======================================================================
+wrote 40 mock rows -> data\mock\mock_raw_faults.csv
+exit=0
+
+
+# >>>>>>>>>>>>>>>>>>>>>> ERROR REPORT <<<<<<<<<<<<<<<<<<<<<<
+
+    Traceback (most recent call last):
+      File "C:\Anaconda\Lib\site-packages\conda\exception_handler.py", line 29, in __call__
+        return func(*args, **kwargs)
+      File "C:\Anaconda\Lib\site-packages\conda\cli\main.py", line 61, in main_subshell
+        exit_code = do_call(args, parser)
+      File "C:\Anaconda\Lib\site-packages\conda\cli\conda_argparse.py", line 205, in do_call
+        result = getattr(module, func_name)(args, parser)
+      File "C:\Anaconda\Lib\site-packages\conda\cli\main_run.py", line 99, in execute
+        script, command = wrap_subprocess_call(
+                          ~~~~~~~~~~~~~~~~~~~~^
+            context.root_prefix,
+            ^^^^^^^^^^^^^^^^^^^^
+        ...<4 lines>...
+            use_system_tmp_path=True,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+        )
+        ^
+      File "C:\Anaconda\Lib\site-packages\conda\utils.py", line 260, in wrap_subprocess_call
+        raise NotImplementedError(
+        ...<6 lines>...
+        )
+    NotImplementedError: Support for scripts where arguments contain newlines not implemented.
+    .. requires writing the script to an external file and knowing how to transform the command-line (e.g. `python -c args` => `python file`) in a tool dependent way, or attempting something like:
+    .. https://stackoverflow.com/a/15032476 (adds unacceptable escapingrequirements)
+
+`$ C:\Anaconda\Scripts\conda-script.py run --no-capture-output -n reef python -c 
+from pathlib import Path
+import pandas as pd
+from backend.collector.clean_data import clean
+from backend.rules.rules import run as run_rules
+from backend.analysis.stability import analyze
+
+for name in ('baseline', 'faults'):
+    raw = Path(f'data/mock/mock_raw_{name}.csv')
+    cleaned = clean(raw, Path(f'data/mock/mock_clean_{name}.csv'))
+    events = run_rules(Path(f'data/mock/mock_clean_{name}.csv'), Path(f'data/mock/mock_events_{name}.csv'))
+    metrics = analyze(cleaned, events, label=f'MOCK-DRYRUN-{name}')
+    print(f'--- mock {name}: rows={len(cleaned)} events={len(events)} ---')
+    print(metrics[['label','metric','channel','valid_rows','valid_pct','mean','std','min','max']].to_string(index=False))
+    print()
+manual = pd.read_csv('data/mock/mock_manual.csv')
+print(f'mock manual rows: {len(manual)} metrics={sorted(manual.metric_name.unique())}')
+`
+
+  environment variables:
+                 CIO_TEST=<not set>
+     CLAUDE_CODE_EXECPATH=C:\Users\Alex1\AppData\Roaming\npm\node_modules\@anthropic-ai\claude-
+                          code\bin\claude.exe
+    CONDA_ALLOW_SOFTLINKS=false
+        CONDA_DEFAULT_ENV=reef
+                CONDA_EXE=C:\Anaconda\Scripts\conda.exe
+             CONDA_PREFIX=C:\Anaconda\envs\reef
+           CONDA_PREFIX_1=C:\Anaconda
+    CONDA_PROMPT_MODIFIER=(reef)
+         CONDA_PYTHON_EXE=C:\Anaconda\python.exe
+               CONDA_ROOT=C:\Anaconda
+              CONDA_SHLVL=2
+           CURL_CA_BUNDLE=<not set>
+                  EXEPATH=C:\Program Files\Git\bin
+                 HOMEPATH=\Users\Alex1
+               LD_PRELOAD=<not set>
+NODEFAULTCURRENTDIRECTORYINEXEPATH=1
+                     PATH=C:\Users\Alex1\bin;C:\Program Files\Git\mingw64\bin;C:\Program
+                          Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program
+                          Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Gi
+                          t\usr\bin;C:\Users\Alex1\bin;C:\Anaconda\envs\reef;C:\Anaconda\envs\re
+                          ef\Library\mingw-
+                          w64\bin;C:\Anaconda\envs\reef\Library\usr\bin;C:\Anaconda\envs\reef\Li
+                          brary\bin;C:\Anaconda\envs\reef\Scripts;C:\Anaconda\envs\reef\bin;C:\A
+                          naconda\condabin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wb
+                          em;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\Open
+                          SSH;C:\Program Files\nodejs;C:\Program Files\Git\cmd;C:\Anaconda;C:\An
+                          aconda\Library\mingw-
+                          w64\bin;C:\Anaconda\Library\usr\bin;C:\Anaconda\Library\bin;C:\Anacond
+                          a\Scripts;C:\Users\Alex1\Desktop\reeftank\cursor\resources\app\codeBin
+                          ;C:\Users\Alex1\AppData\Local\Programs\Python\Python313\Scripts;C:\Use
+                          rs\Alex1\AppData\Local\Programs\Python\Python313;C:\Users\Alex1\AppDat
+                          a\Local\Programs\Python\Launcher;C:\Users\Alex1\AppData\Local\Microsof
+                          t\WindowsApps;C:\Users\Alex1\AppData\Roaming\npm;C:\Users\Alex1\Deskto
+                          p\reeftank\cursor\resources\app\bin;C:\Users\Alex1\AppData\Local\Progr
+                          ams\Microsoft VS Code\bin;C:\Users\Alex1\AppData\Local\Programs\Docker
+                          Desktop\resources\bin;C:\Program
+                          Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+             PSMODULEPATH=C:\Users\Alex1\Documents\WindowsPowerShell\Modules;C:\Program Files\Wi
+                          ndowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Mod
+                          ules
+       REQUESTS_CA_BUNDLE=<not set>
+            SSL_CERT_FILE=C:\Anaconda\envs\reef\Library\ssl\cacert.pem
+
+     active environment : reef
+    active env location : C:\Anaconda\envs\reef
+            shell level : 2
+       user config file : C:\Users\Alex1\.condarc
+ populated config files : C:\Anaconda\.condarc
+                          C:\Anaconda\condarc.d\anaconda-auth.yml
+                          C:\Users\Alex1\.condarc
+          conda version : 25.11.1
+    conda-build version : 25.11.1
+         python version : 3.13.9.final.0
+                 solver : libmamba (default)
+       virtual packages : __archspec=1=x86_64_v3
+                          __conda=25.11.1=0
+                          __win=10.0.26200=0
+       base environment : C:\Anaconda  (writable)
+      conda av data dir : C:\Anaconda\etc\conda
+  conda av metadata url : None
+           channel URLs : https://repo.anaconda.com/pkgs/main/win-64
+                          https://repo.anaconda.com/pkgs/main/noarch
+                          https://repo.anaconda.com/pkgs/r/win-64
+                          https://repo.anaconda.com/pkgs/r/noarch
+                          https://repo.anaconda.com/pkgs/msys2/win-64
+                          https://repo.anaconda.com/pkgs/msys2/noarch
+          package cache : C:\Anaconda\pkgs
+                          C:\Users\Alex1\.conda\pkgs
+                          C:\Users\Alex1\AppData\Local\conda\conda\pkgs
+       envs directories : C:\Anaconda\envs
+                          C:\Users\Alex1\.conda\envs
+                          C:\Users\Alex1\AppData\Local\conda\conda\envs
+               platform : win-64
+             user-agent : conda/25.11.1 requests/2.32.5 CPython/3.13.9 Windows/11 Windows/10.0.26200 solver/libmamba conda-libmamba-solver/25.11.0 libmambapy/2.3.2 aau/0.7.5 c/. s/. e/. a/.
+          administrator : False
+             netrc file : None
+           offline mode : False
+
+
+An unexpected error has occurred. Conda has prepared the above report.
+If you suspect this error is being caused by a malfunctioning plugin,
+consider using the --no-plugins option to turn off plugins.
+
+Example: conda --no-plugins install <package>
+
+Alternatively, you can set the CONDA_NO_PLUGINS environment variable on
+the command line to run the command without plugins enabled.
+
+Example: CONDA_NO_PLUGINS=true conda install <package>
+
+If submitted, this report will be used by core maintainers to improve
+future releases of conda.
+Would you like conda to send this report to the core maintainers? [y/N]: 
+No report sent. To permanently opt-out, use
+
+    $ conda config --set report_errors false
+
+exit=1
+
+[5] Mock generator determinism: same seed -> byte-identical output
+17f6904ee4f2be02c019c7ee8c8be118c3c123e3266490f8728037d8db7813e9 *data/mock/mock_det_a.csv
+17f6904ee4f2be02c019c7ee8c8be118c3c123e3266490f8728037d8db7813e9 *data/mock/mock_det_b.csv
+
+[6] Integrity: data/mock is gitignored; no mock file may enter data/raw, experiments/results or commits
+data/mock/mock_raw_baseline.csv
+IGNORED-OK
+ M .gitignore
+?? backend/analysis/
+?? data/mock/
+?? evidence/S13/
+?? experiments/EXP01_BASELINE.md
+?? tests/test_stability.py
+
+[7] EXP01 status: PREPARED - EXECUTION PENDING HARDWARE. No real baseline recorded;
+    Results table in experiments/EXP01_BASELINE.md remains _pending_ (no invented data).
+
+[4] MOCK DRY-RUN (tool check only - SYNTHETIC data, NOT experimental results).
+    python -m scripts.dryrun_pipeline_mock  (mock gen -> clean -> rules -> stability):
+======================================================================
+DRY-RUN ON SYNTHETIC MOCK DATA - NOT REAL TELEMETRY - NOT RESULTS
+======================================================================
+--- mock baseline: rows=120 events=0 ---
+               label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-baseline      channel      temperature_c       120.0      100.0 25.499  0.575 24.583 26.447
+MOCK-DRYRUN-baseline      channel                 ph       120.0      100.0  8.202  0.077  8.074  8.328
+MOCK-DRYRUN-baseline      channel light_relative_pct       120.0      100.0 78.647 13.853 50.000 95.000
+MOCK-DRYRUN-baseline completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-baseline       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+
+--- mock faults: rows=40 events=20 ---
+             label       metric            channel  valid_rows  valid_pct   mean    std    min    max
+MOCK-DRYRUN-faults      channel      temperature_c        30.0       75.0 26.089  0.256 25.542 26.447
+MOCK-DRYRUN-faults      channel                 ph        30.0       75.0  8.285  0.019  8.255  8.328
+MOCK-DRYRUN-faults      channel light_relative_pct        30.0       75.0 70.510 11.637 50.000 87.740
+MOCK-DRYRUN-faults completeness                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+MOCK-DRYRUN-faults       events                NaN         NaN        NaN    NaN    NaN    NaN    NaN
+
+mock manual rows: 12 metrics=['ammonia_mg_l', 'salinity_sg']
+
+Dry-run complete. Outputs under data/mock/ (gitignored) must never be copied into data/raw, experiments/results or reports.
+exit=0
+
+[5] Mock generator determinism: same seed -> byte-identical output
+17f6904ee4f2be02c019c7ee8c8be118c3c123e3266490f8728037d8db7813e9 *data/mock/mock_det_a.csv
+17f6904ee4f2be02c019c7ee8c8be118c3c123e3266490f8728037d8db7813e9 *data/mock/mock_det_b.csv
+
+[6] Integrity: data/mock is gitignored; mock files never enter data/raw, experiments/results or commits
+IGNORED-OK
+experiments/results absent (correct - no real results yet)
+
+[7] EXP01 status: PREPARED - EXECUTION PENDING HARDWARE. No real baseline recorded;
+    Results table in experiments/EXP01_BASELINE.md remains _pending_ (no invented data).
+
+[8] Note: dry-run also discharges the runtime-verification open item on
+    scripts/generate_mock_telemetry.py (previously desk-checked only).

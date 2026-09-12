@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S13 (S01-S12 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S12 fully validated host-side)
+- Current session for a fresh repo: S14 (S01-S13 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S13 fully validated host-side; S13 prepared-only, execution pending hardware)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -282,26 +282,26 @@
 **Resume pointer:** Proceed to S13 (Baseline Stability Experiment). NOTE: S13-S17 are experiment sessions requiring a populated tank, the assembled sensor rig and multi-day real captures - none possible until the pending S04-S08 board verifications land; expect blocked/deviation handling with honest no-invented-data closure. Outstanding hardware follow-ups unchanged (S04 serial capture; S05 portal/reboot/PROVISION/CLEAR_WIFI; S06 DS18B20; S07 I2C scan + CAL7/CAL4 buffers; S08 PT550 dark/light).
 
 ## Session 13 - Baseline Stability Experiment
-**Status:** NOT_STARTED
+**Status:** COMPLETE (prepared; real 24-48 h run pending hardware - see deviation)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S13/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S13/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `experiments/EXP01_BASELINE.md` (new: full run-ready protocol - preconditions incl. S04-S08 board verifications and S07 pH calibration, 24-48 h undisturbed capture procedure, acceptance criteria on VALID readings only (temp std <= 0.5 C within 24-27 C; pH within 8.0-8.4; >= 95 % completeness; zero CRITICAL events), optional manual salinity/ammonia entries, Results table left _pending_, integrity rules forbidding mock data in results), `backend/analysis/stability.py` (new: per-channel valid-only stats, 1 Hz completeness, event counts, optional XKC state counts - no fabrication for absent channels; CLI with --label/--out for reuse in S14-S17), `tests/test_stability.py` (new, 10 tests), `scripts/dryrun_pipeline_mock.py` (new: labeled end-to-end dry-run mock-gen -> clean -> rules -> stability; outputs confined to gitignored data/mock/), `.gitignore` (data/mock/*.csv ignored, .gitkeep added), `TASKS.md`, `evidence/S13/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S13/validation_output.txt` (2026-09-12). Host-side session. `pytest tests/test_stability.py -v` -> 10 passed; full suite -> 64 passed (no regressions). Provisioning policy script PASSED. MOCK DRY-RUN (clearly labeled SYNTHETIC, tool check only, NOT results): baseline scenario 120 rows -> 0 events, temp mean 25.5 C std 0.58, pH mean 8.20; sensor_faults 40 rows -> 20 events, valid_pct 75 % per channel (light faults correctly produce no events - light has no alert rules by design); mock manual rows parse (salinity_sg/ammonia_mg_l). Mock generator determinism proven (identical SHA-256 for same seed) - this also discharges the runtime-verification open item on `scripts/generate_mock_telemetry.py`. Integrity: data/mock gitignored, experiments/results deliberately absent.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (per prompt wording "Run/prepare" and the user's full-authority rush directive, closure question not asked): the real 24-48 h baseline CANNOT be run - no ESP32-S3 board, sensor rig or populated tank is attached (PnP scan 2026-09-12 confirms no present serial device; earlier COM7/COM8 entries are stale). Session closed on the PREPARE path: protocol + analysis toolchain complete and validated on labeled mock data; EXP01 Results remain _pending_ with no invented data. Pending on hardware: complete S04-S08 verifications, calibrate pH (S07 log), then execute EXP01 procedure and fill Results from real captures only.
 
-**Commit:** _pending_
+**Commit:** `S13 baseline stability experiment`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S14 (Temperature Response Experiment) - also expected to close on the prepare path until hardware exists; reuse `backend/analysis/stability.py` and `scripts/dryrun_pipeline_mock.py` patterns. Outstanding hardware follow-ups unchanged (S04-S08 captures; S13 EXP01 execution).
 
 ## Session 14 - Temperature Response Experiment
 **Status:** NOT_STARTED
