@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S19 (S01-S18 complete - core sensing/data/experiment milestone closed; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S18 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; web phase S19-S28 next)
+- Current session for a fresh repo: S20 (S01-S19 complete - core milestone closed, web contract frozen; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S19 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; web build S20-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -416,26 +416,26 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S19 (Web Architecture and Data Contract). Web stack works host-side without hardware: use `scripts/generate_mock_telemetry.py` + `scripts/dryrun_pipeline_mock.py` for labeled synthetic inputs (never presented as real), `database/schema.sql` as the frozen contract, `docs/prompt_boundary.md` for report safety, and secret policy per `docs/Device_Provisioning.md`. Hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05 execution; S23 runtime verification).
 
 ## Session 19 - Web Architecture and Data Contract
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S19/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S19/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `docs/Web_Facade_Architecture.md` (new FROZEN repo-local copy: stack, topology diagram, six required pages with per-page honesty requirements, frozen API surface, the six data states CURRENT/STALE/MISSING/OPTIONAL_ABSENT/MANUAL/UNAVAILABLE with UI treatment, security boundary (Bearer ingest token server+NVS only, DATABASE_URL server-side, reject-never-clamp validation, rate limiting, no secret read-back, labeled-mock-only seeding), S20-S28 session mapping), `docs/Telemetry_Contract.md` (new FROZEN: POST /api/telemetry JSON shape mirroring the serial CSV contract 1:1, per-field nullability+range table matching clean_data.py, forbidden-field 400 rule, batch cap 500, partial-success response semantics, latest/history/events/reports/health GET contracts incl. state computation and honest-empty rules, manual-measurement separation from device ingestion, S23 device-side NA->null mapping), `docs/Web_Acceptance_Criteria.md` (new FROZEN: global honesty gates + per-session acceptance checklists S20-S28, removed-sensor reappearance as automatic failure, S23 runtime verification explicitly hardware-gated not silently skipped), `TASKS.md`, `evidence/S19/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S19/validation_output.txt` (2026-09-12). Docs-only freeze session. Consistency vs normative package doc: all stack terms/pages/endpoints present in both (counts recorded). Contract ranges verified identical to `clean_data.py` (-10..85 / 0..14 / 0..100). Forbidden-sensor audit: 4 hits, all prohibition/rejection prose - PASS. Secret scan: all token/secret mentions are policy statements; zero credentials in docs; `.env.local` patterns already gitignored. Full suite -> 90 passed; provisioning policy PASSED. No unrelated refactor performed.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (unavailable-sensor drift review: UNAVAILABLE state defined as must-not-exist; forbidden JSON fields rejected with 400 per contract; acceptance criteria make any reappearance an automatic session failure)
 
-**Commit:** _pending_
+**Commit:** `docs: freeze web facade architecture and telemetry contract`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S20 (Docker PostgreSQL and Schema): create committed docker-compose for Postgres (pinned tag), `.env.example` placeholders only, apply `database/schema.sql` idempotently, capture compose config + apply log + table listing as evidence per `docs/Web_Acceptance_Criteria.md` S20 checklist. Hardware follow-ups unchanged.
 
 ## Session 20 - Docker PostgreSQL and Schema
 **Status:** NOT_STARTED

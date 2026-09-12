@@ -1,0 +1,58 @@
+== Session 19 validation - 2026-09-12T03:41:29Z ==
+
+[1] Consistency vs normative package doc (stack/pages/endpoints)
+  Next.js: package=2 repo=4
+  Tailwind: package=1 repo=2
+  DATABASE_URL: package=1 repo=2
+  Vercel: package=1 repo=4
+  /api/telemetry: package=3 repo=4
+  /api/telemetry/latest: package=1 repo=1
+  /api/telemetry/history: package=1 repo=1
+  /api/events: package=1 repo=1
+  /api/reports: package=1 repo=1
+  /api/health: package=1 repo=1
+  /history: package=2 repo=2
+  /experiments: package=1 repo=1
+  /reports: package=2 repo=2
+  /system: package=1 repo=1
+
+[2] Contract ranges match cleaning layer
+27:TEMPERATURE_RANGE = (-10.0, 85.0)   # plausible DS18B20 range for a tank
+28:PH_RANGE = (0.0, 14.0)               # physical pH bounds
+29:LIGHT_RANGE = (0.0, 100.0)           # relative percent is clamped by design
+43:            *TEMPERATURE_RANGE, inclusive="both")
+45:        df["ph_valid"] = df["ph"].between(*PH_RANGE, inclusive="both")
+48:            *LIGHT_RANGE, inclusive="both")
+40:| `temperature_c` | number \| null | yes (nullable) | -10..85 (DS18B20 plausible) | row rejected |
+41:| `ph` | number \| null | yes (nullable) | 0..14 | row rejected |
+43:| `light_relative_pct` | number \| null | yes (nullable) | 0..100 | row rejected |
+
+[3] Forbidden-sensor audit of S19 docs (hits must be prohibition/rejection prose only)
+docs/Web_Facade_Architecture.md:55:| UNAVAILABLE | ORP, EC/conductivity, ZP4510 float, FS300A flow | must not exist as fields, cards, mocks, rules or claims anywhere |
+docs/Telemetry_Contract.md:9:anything named or meaning ORP, EC/conductivity, flow, ZP4510/FS300A float
+docs/Web_Acceptance_Criteria.md:7:report claims for ORP/EC/ZP4510/FS300A are automatic failures).
+docs/Web_Acceptance_Criteria.md:37:      fields incl. any ORP/EC/flow/float name; per-row rejection report).
+
+[4] Secret scan: no tokens/credentials/passwords in S19 docs
+docs/Web_Facade_Architecture.md:10:- PostgreSQL via `DATABASE_URL` (local: Docker Desktop; deployed: Vercel +
+docs/Web_Facade_Architecture.md:17:   |  HTTPS POST /api/telemetry  (Bearer ingest token, outbound-only)
+docs/Web_Facade_Architecture.md:40:- `POST /api/telemetry` — authenticated ESP32 ingestion (Bearer token)
+docs/Web_Facade_Architecture.md:66:- No read-back endpoint for stored secrets; GET endpoints return
+docs/Telemetry_Contract.md:14:Auth: `Authorization: Bearer <INGEST_TOKEN>` (required; 401 otherwise).
+docs/Telemetry_Contract.md:58:- `401` — missing or wrong token. `429` — rate-limited.
+docs/Telemetry_Contract.md:115:`timestamp_ms` values preserved. Token + API URL come from NVS
+docs/Web_Acceptance_Criteria.md:31:      scan for `DATABASE_URL`/token strings).
+docs/Web_Acceptance_Criteria.md:35:- [ ] `POST /api/telemetry` enforces Bearer token (401 without), validates
+docs/Web_Acceptance_Criteria.md:48:      credential path; token/API URL from NVS only.
+docs/Web_Acceptance_Criteria.md:69:      build logs show no secret leakage; deployed `/api/health` returns ok.
+
+[5] Full test suite (pytest tests -q)
+..................                                                       [100%]
+90 passed in 3.74s
+exit=0
+
+[6] Wi-Fi provisioning policy check
+Provisioning policy validation PASSED
+exit=0
+[4b] Verification: all token/secret hits are policy statements (Bearer requirement, NVS-only
+     storage, gitignored env, no-read-back rule) - zero actual credentials in docs. PASS.
