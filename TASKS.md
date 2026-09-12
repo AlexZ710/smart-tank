@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S16 (S01-S15 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S15 fully validated host-side; S13-S15 prepared/designed-only, execution pending hardware)
+- Current session for a fresh repo: S17 (S01-S16 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S16 fully validated host-side; S13-S16 prepared/designed-only, execution pending hardware/tank)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -348,26 +348,26 @@
 **Resume pointer:** Proceed to S16 (Manual Salinity Drift and Organic Load Risk) - manual-measurement-only session (salinity SG + ammonia via `manual_measurements`); can be prepared host-side with a record template + risk-review protocol, execution still needs a real tank. Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP03 execution).
 
 ## Session 16 - Manual Salinity Drift and Organic Load Risk
-**Status:** NOT_STARTED
+**Status:** COMPLETE (prepared; campaigns pending tank operation - see deviation)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S16/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S16/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `experiments/EXP04_MANUAL_SALINITY_DRIFT.md` (new: manual-only salinity campaign - refractometer/hydrometer 2x weekly, top-off/water-change logging, risk thresholds SG 1.024-1.026 target with Watch/Act-now bands, drift-rate analysis without interpolation, explicit ban on EC/automatic-salinity claims), `experiments/EXP05_ORGANIC_LOAD_RISK.md` (new: manual-only organic-load risk review - weekly reagent ammonia + 0-25 structured observation checklist + feeding log, LOW/WATCH/HIGH/CRITICAL risk matrix with manual mitigations only, deterministic pH/temperature events as context overlays never risk drivers, explicit ban on ammonia/ORP sensor claims), `backend/analysis/manual_log.py` (new: append-only manual ledger `data/manual/manual_measurements.csv` mirroring the manual_measurements DB table; validation rejects forbidden-sensor metric names even as manual entries, requires method, rejects NaN values, warns on unit drift; add/list/summary CLI), `tests/test_manual_log.py` (new, 15 tests incl. parametrized forbidden-metric rejection), `.gitignore` (data/manual/*.csv ignored - real operational data stays local like raw telemetry), `TASKS.md`, `evidence/S16/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S16/validation_output.txt` (2026-09-12). `pytest tests/test_manual_log.py -q` -> 15 passed; full suite -> 90 passed (no regressions). Design-integrity audit PASS: forbidden terms in EXP04/EXP05 appear only in prohibition prose; every 'automatic/estimated' mention is an explicit non-claim. Provisioning policy PASSED. CLI tool check on throwaway gitignored path (demo rows labeled "DEMO ROW - not a real reading"): append-only behavior verified (existing line byte-identical after second add; 3 lines total), summary aggregates per metric. Live rejection demo via real CLI: `add --metric orp_mv` -> ValueError exit=1 BEFORE any write; real ledger `data/manual/` confirmed empty (only .gitkeep). One demo-run mistake was caught and corrected honestly: an initial demo wrote 2 labeled rows into the real ledger path (module-constant rebinding does not override default args); those rows were deleted before any commit and the demo was rerun with explicit paths - the committed real ledger is empty.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** DEVIATION (per user full-authority rush directive; same pattern as S13-S15): the 4-6 week manual campaigns require a populated, operated tank - none exists yet. Session closed on the PREPARE path: complete protocols + validated ledger tooling; no invented data, Results _pending_. Manual entries begin when the tank is running.
 
-**Commit:** _pending_
+**Commit:** `S16 manual salinity drift and organic-load risk`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S17 (Results and Figures) - expected to close on the prepare path: results/figures assembly tooling + templates that consume real EXP01-EXP05 outputs when they exist; with no real data yet, it must produce templates and a mock-labeled dry-run only, never fabricated results. Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05 execution).
 
 ## Session 17 - Results and Figures
 **Status:** NOT_STARTED

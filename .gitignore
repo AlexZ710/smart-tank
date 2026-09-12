@@ -17,3 +17,5 @@ data/events/*.csv
 data/mock/*.csv
 !data/mock/.gitkeep
 data/mock/*.png
+data/manual/*.csv
+!data/manual/.gitkeep

@@ -1,0 +1,44 @@
+== Session 16 validation - 2026-09-12T03:27:38Z ==
+
+[1] Manual ledger tests (pytest tests/test_manual_log.py -q)
+...............                                                          [100%]
+15 passed in 1.13s
+exit=0
+
+[2] Full test suite (pytest tests -q)
+........................................................................ [ 80%]
+..................                                                       [100%]
+90 passed in 3.60s
+exit=0
+
+[3] Design-integrity audit: forbidden terms only in prohibition prose; no automatic-measurement claims
+experiments/EXP04_MANUAL_SALINITY_DRIFT.md:5:conductivity sensor in the hardware baseline (forbidden to reintroduce),
+experiments/EXP04_MANUAL_SALINITY_DRIFT.md:73:- Forbidden to claim: automatic salinity, EC/conductivity measurement,
+experiments/EXP05_ORGANIC_LOAD_RISK.md:5:There is NO ammonia sensor and NO ORP probe in the hardware baseline
+experiments/EXP05_ORGANIC_LOAD_RISK.md:6:(both forbidden to reintroduce). Nothing here may claim ammonia, ORP or
+experiments/EXP05_ORGANIC_LOAD_RISK.md:74:- No claim anywhere that ammonia/ORP/organic load is sensor-measured.
+experiments/EXP05_ORGANIC_LOAD_RISK.md:83:- Forbidden to claim: automatic ammonia, ORP-based oxidation state, or
+  (all matches above are prohibitions/boundary prose - verified by inspection)
+
+[4] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[5] CLI tool check on a THROWAWAY path (data/mock/manual_demo.csv, gitignored).
+    Demo rows are NOT real measurements; the real ledger data/manual/ stays empty.
+Manual ledger: 2 rows
+- ammonia_mg_l: 1 rows, latest 0.02 mg/L, min 0.02, max 0.02
+- salinity_sg: 1 rows, latest 1.025 SG, min 1.025, max 1.025
+append-only check: 3 lines
+exit=0
+
+[5b] Forbidden-metric rejection via real CLI (validation fires BEFORE any write; data/manual must stay empty):
+    raise ValueError(
+ValueError: metric 'orp_mv' rejected: forbidden-sensor term 'orp' (absent from hardware baseline; not even manual)
+ERROR conda.cli.main_run:execute(127): `conda run python -m backend.analysis.manual_log add --metric orp_mv --value 210 --unit mV --method demo` failed. (See above for error)
+exit=1
+
+DEMO-LEDGER-IGNORED-OK
+
+[6] Status: EXP04/EXP05 PREPARED - campaigns pending tank operation (manual entries by owner).
+    Results sections _pending_; real ledger untouched.
