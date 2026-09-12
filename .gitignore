@@ -10,3 +10,7 @@ data/raw/*.csv
 .env.local
 .env.*.local
 web/.env.local
+data/clean/*.csv
+!data/clean/.gitkeep
+data/events/*.csv
+!data/events/.gitkeep

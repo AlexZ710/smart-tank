@@ -1,0 +1,63 @@
+== Session 11 validation - 2026-09-12T02:46:53Z ==
+
+[1] Rule unit tests (pytest tests/test_rules.py -v)
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- C:\Anaconda\envs\reef\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Alex1\Desktop\reeftank\smart-tank_BigBang\smart-tank\smart-tank
+collecting ... collected 12 items
+
+tests/test_rules.py::test_normal_row_has_no_events PASSED                [  8%]
+tests/test_rules.py::test_temp_and_ph_outside_ranges_generate_events PASSED [ 16%]
+tests/test_rules.py::test_determinism_same_input_same_output PASSED      [ 25%]
+tests/test_rules.py::test_row_and_channel_order_is_stable PASSED         [ 33%]
+tests/test_rules.py::test_critical_severity_beyond_critical_band PASSED  [ 41%]
+tests/test_rules.py::test_missing_values_generate_missing_events PASSED  [ 50%]
+tests/test_rules.py::test_validity_flags_override_range_checks PASSED    [ 58%]
+tests/test_rules.py::test_absent_channel_is_skipped_not_fabricated PASSED [ 66%]
+tests/test_rules.py::test_boundary_values_are_inclusive_no_event PASSED  [ 75%]
+tests/test_rules.py::test_empty_dataframe_returns_typed_empty_frame PASSED [ 83%]
+tests/test_rules.py::test_no_forbidden_rule_codes PASSED                 [ 91%]
+tests/test_rules.py::test_run_writes_events_csv PASSED                   [100%]
+
+============================= 12 passed in 1.01s ==============================
+exit=0
+
+[2] Full test suite (pytest tests -q)
+.................................                                        [100%]
+33 passed in 3.32s
+exit=0
+
+[3] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[4] Pipeline run on local raw capture: clean -> rules
+Rows preserved: 0
+  temperature_valid: 0/0 valid
+  ph_valid: 0/0 valid
+  light_valid: 0/0 valid
+Empty DataFrame
+Columns: [timestamp_ms, temperature_c, ph, ph_voltage_v, light_relative_pct, light_voltage_v, xkc_level_state, temperature_valid, ph_valid, light_valid]
+Index: []
+exit=0
+
+Events written to data\events\events.csv: 0
+exit=0
+
+[5] events.csv head
+timestamp_ms,severity,rule_code,reason
+
+[6] Forbidden-term audit of S11 files (must appear only in absent/forbidden boundary prose)
+backend/rules/rules.py:9:  engine never depends on it. No flow, ORP, EC or float-switch rules exist
+tests/test_rules.py:110:    for forbidden in ("ORP", "EC_", "ZP4510", "FS300A", "FLOW", "FLOAT"):
+docs/rules_engine.md:21:There are deliberately **no** flow, ORP, EC/conductivity or float-switch
+exit=0
+
+[7] Determinism check: re-run rules, compare hashes
+a67e50d06e76fc9e386039f5cbc56ccdf70b684bc16d9cd1069d385f887218a0 *data/events/events.csv
+a67e50d06e76fc9e386039f5cbc56ccdf70b684bc16d9cd1069d385f887218a0 *data/events/events.csv
+
+[8] Note: data/raw/reef_data.csv is header-only (no ESP32-S3 board attached yet),
+    so the pipeline produced 0 rows / 0 events. No data was invented; once the
+    pending S04-S08 board captures land, re-running [4] regenerates events.

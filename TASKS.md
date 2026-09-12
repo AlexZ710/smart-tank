@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S11 (S01-S10 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S10 fully validated host-side)
+- Current session for a fresh repo: S12 (S01-S11 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S11 fully validated host-side)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -238,26 +238,26 @@
 **Resume pointer:** Proceed to S11 (Deterministic Rule Engine). With real collected data the same commands run unchanged: `python backend/collector/clean_data.py` then `python backend/visualization/visualize.py`.
 
 ## Session 11 - Deterministic Rule Engine
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S11/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S11/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `backend/rules/rules.py` (rewritten: documented warning/critical threshold bands for temperature 24-27/20-32 C and pH 8.0-8.4/7.0-9.0, stable rule_code vocabulary TEMP_*/PH_* aligned with the `events` table, cleaning-aware `*_valid` flag handling, deterministic row/channel ordering, CLI `python -m backend.rules.rules` writing `data/events/events.csv`), `tests/test_rules.py` (rewritten, 12 tests: determinism, ordering, critical band, missing/invalid precedence, absent-channel skip, boundary inclusivity, forbidden-code audit, run() CSV output), `docs/rules_engine.md` (new: thresholds, rule codes, reproduction commands, change procedure), `.gitignore` (derived `data/clean/*.csv`, `data/events/*.csv` ignored; .gitkeep added), `TASKS.md`, `evidence/S11/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S11/validation_output.txt` (2026-09-12). Host-side session - fully validated without hardware. `pytest tests/test_rules.py -v` -> 12 passed; full suite `pytest tests -q` -> 33 passed (no regression in S09/S10 tests). Provisioning policy script PASSED. End-to-end pipeline on local raw capture: clean -> rules -> `data/events/events.csv`; raw is header-only (no board attached) so 0 rows / 0 events produced honestly, nothing invented. Determinism proven: two consecutive runs give identical events.csv SHA-256 (a67e50d0...). Forbidden-term audit: ORP/EC/ZP4510/FS300A/flow/float appear in S11 files only as explicit absent/forbidden boundary declarations and as a negative test assertion - zero rule codes for unavailable sensors.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (unavailable-sensor drift review: rules exist only for DS18B20 temperature and SEN0161-V2 pH; PT550 relative light is informational with no alert rules; XKC state is never consumed by the engine; test asserting forbidden rule codes cannot appear is part of the suite)
 
-**Commit:** _pending_
+**Commit:** `S11 deterministic rule engine`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S12 (Bounded AI Report). Outstanding hardware follow-ups unchanged (S04 serial capture; S05 portal/reboot/PROVISION/CLEAR_WIFI; S06 DS18B20; S07 I2C scan + CAL7/CAL4 buffers; S08 PT550 dark/light). Once real data lands in `data/raw/reef_data.csv`, rerun `python -m backend.collector.clean_data` then `python -m backend.rules.rules` to regenerate events.
 
 ## Session 12 - Bounded AI Report
 **Status:** NOT_STARTED
