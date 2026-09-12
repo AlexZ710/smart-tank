@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S18 (S01-S17 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S17 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank)
+- Current session for a fresh repo: S19 (S01-S18 complete - core sensing/data/experiment milestone closed; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S18 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; web phase S19-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -392,26 +392,28 @@
 **Resume pointer:** Proceed to S18 (Core System Milestone and Pre-Web Demo) - this is the integration/milestone session: per its prompt it may span prior sessions; verify the full host-side chain (collector -> clean -> rules -> stability/response -> manual ledger -> bounded report -> results table) in one demo run on labeled mock data, confirm compile state of all firmware sketches, and record the milestone status incl. the pending-hardware list. Outstanding hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05 execution).
 
 ## Session 18 - Core System Milestone / Pre-Web Demo
-**Status:** NOT_STARTED
+**Status:** COMPLETE (core host-side milestone closed; hardware verification pending as recorded)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S18/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S18/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc §1-§2); unavailable sensors not claimed (§3 + repo-wide audit PASS); known limitations recorded (§4: six items incl. placeholder pH calibration and header-only raw data); web extension readiness/blockers recorded (§5); TASKS points to S19 after this session.
 
-**Validation evidence:** _pending_
+**Changed files:** `docs/milestone_S18_core_system.md` (new: architecture map, S01-S17 phase table, forbidden-sensor non-claim verification, known limitations, web-phase readiness + blockers, milestone validation summary), `TASKS.md`, `evidence/S18/validation_output.txt` (new)
 
-**Blockers/deviations:** _none recorded_
+**Validation evidence:** `evidence/S18/validation_output.txt` (2026-09-12). Full suite -> 90 passed. Provisioning policy PASSED. End-to-end labeled-mock dry-run green across all four scenarios (baseline 0 events, faults 20, excursion 152, phdrift 146) with EXP02/EXP03-style response metrics computed. Results-table regeneration deterministic (identical SHA-256 1a19fcc1... twice). Firmware milestone compile: SmartTank_Integrated_Monitor for esp32:esp32:esp32s3 exit=0 (955913 B flash / 72 %, 47880 B RAM / 14 %). Repo-wide forbidden-claim audit over backend/scripts/firmware/tests/database: 11 hits, each manually verified as rejection-term constants, boundary statement, honesty docstring or negative test fixture - zero measurement claims. AUDIT PASS.
 
-**Commit:** _pending_
+**Blockers/deviations:** Milestone deviation (carried, honest): the sensing phase is compile- and audit-verified only - no board has ever been attached, so S04-S08 on-hardware captures, pH buffer calibration and EXP01-EXP05 runs remain pending (milestone doc §4 lists them all). Web phase can proceed host-side against labeled mock data; the real device->API->UI demo is blocked on the same hardware.
 
-**Resume pointer:** _pending_
+**Commit:** `S18 core system milestone`
+
+**Resume pointer:** Proceed to S19 (Web Architecture and Data Contract). Web stack works host-side without hardware: use `scripts/generate_mock_telemetry.py` + `scripts/dryrun_pipeline_mock.py` for labeled synthetic inputs (never presented as real), `database/schema.sql` as the frozen contract, `docs/prompt_boundary.md` for report safety, and secret policy per `docs/Device_Provisioning.md`. Hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05 execution; S23 runtime verification).
 
 ## Session 19 - Web Architecture and Data Contract
 **Status:** NOT_STARTED

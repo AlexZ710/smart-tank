@@ -1,0 +1,54 @@
+== Session 18 milestone validation - 2026-09-12T03:34:56Z ==
+
+[1] Full test suite (pytest tests -q)
+........................................................................ [ 80%]
+..................                                                       [100%]
+90 passed in 3.60s
+exit=0
+
+[2] Wi-Fi provisioning policy check
+Provisioning policy validation PASSED
+exit=0
+
+[3] End-to-end labeled-mock dry-run (tool check only, NOT results)
+DRY-RUN ON SYNTHETIC MOCK DATA - NOT REAL TELEMETRY - NOT RESULTS
+--- mock baseline: rows=120 events=0 ---
+--- mock faults: rows=40 events=20 ---
+--- mock excursion: rows=180 events=152 ---
+EXP02-style response_report (MOCK): {'channel': 'temperature_c', 'pre_mean': 25.542, 'pre_std': 0.0, 'pre_rows': 1, 'max_rate_per_10min': 7.958, 'peak_delta': 7.958, 'peak_ts': 64000.0, 'time_to_peak_min': 1.03, 'recovery_time_min': None}
+--- mock phdrift: rows=180 events=146 ---
+EXP03-style response_report (MOCK): {'channel': 'ph', 'pre_mean': 8.256, 'pre_std': 0.0, 'pre_rows': 1, 'max_rate_per_10min': 1.456, 'peak_delta': -1.456, 'peak_ts': 73000.0, 'time_to_peak_min': 1.18, 'recovery_time_min': None}
+mock manual rows: 12 metrics=['ammonia_mg_l', 'salinity_sg']
+Dry-run complete. Outputs under data/mock/ (gitignored) must never be copied into data/raw, experiments/results or reports.
+exit=0
+
+[4] Results-table regeneration determinism
+1a19fcc188743d38eccbe7a7609ebbf6203459f6d47456eed2b0de707800a353 *docs/results_table.csv
+1a19fcc188743d38eccbe7a7609ebbf6203459f6d47456eed2b0de707800a353 *docs/results_table.csv
+
+[5] Firmware compile check at milestone: SmartTank_Integrated_Monitor (esp32:esp32:esp32s3)
+Sketch uses 955913 bytes (72%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 47880 bytes (14%) of dynamic memory, leaving 279800 bytes for local variables. Maximum is 327680 bytes.
+exit=0
+
+[6] Repo-wide forbidden-claim audit (code dirs only; every hit must be boundary/rejection prose)
+backend/ai_agent/reef_agent.py:37:    "orp", "conductivity", "ec_us", "ec_ms", "_ec_", "flow",
+backend/ai_agent/reef_agent.py:38:    "zp4510", "fs300a", "float_switch", "float-state", "salinity_probe",
+backend/ai_agent/reef_agent.py:58:    "Boundary: ORP, EC/conductivity, ZP4510 float state, FS300A flow and any "
+backend/analysis/manual_log.py:48:    "orp", "conductivity", "ec_", "_ec", "flow", "float",
+backend/analysis/manual_log.py:49:    "zp4510", "fs300a", "par", "lux", "ppfd",
+scripts/generate_mock_telemetry.py:16:  ZP4510 float or FS300A flow values are ever produced.
+tests/test_manual_log.py:35:    "orp_mv", "ec_us_cm", "conductivity_manual", "flow_rate",
+tests/test_manual_log.py:36:    "zp4510_state", "fs300a_total_l", "float_switch_events",
+tests/test_reef_agent.py:51:    "orp_mv", "ec_us_cm", "conductivity_ms", "flow_lpm",
+tests/test_reef_agent.py:52:    "zp4510_state", "fs300a_flow", "float_switch_state",
+tests/test_reef_agent.py:77:    # word-boundary match: boundary prose ("parameter", "FS300A") is allowed,
+unexpected-hits-exit=0 (1/empty = all hits are boundary prose)
+
+[7] Milestone summary: 90 host tests green, policy green, mock E2E dry-run green,
+    results table deterministic (1a19fcc1...), integrated firmware compiles (955913 B / 72%),
+    no forbidden-sensor claims in code. Hardware verification remains pending (milestone doc §4).
+[6b] Manual verification of the 11 listed hits: all are rejection-term constant lists
+     (reef_agent FORBIDDEN_INPUT_TERMS, manual_log FORBIDDEN_METRIC_TERMS), the boundary
+     statement string, mock-generator honesty docstring, or negative test fixtures.
+     Zero implementation or measurement claims for forbidden sensors. AUDIT PASS.
