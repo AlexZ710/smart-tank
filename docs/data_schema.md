@@ -12,8 +12,9 @@
   automatic fields.
 - Salinity and other lab values live only in `manual_measurements` (manual
   refractometer/hydrometer input), never in `telemetry_readings`.
-- `light_raw` / `light_voltage_v` are the PT550 relative light signal. They
-  must never be presented as lux/PAR/PPFD without a documented calibration.
+- `light_raw` / `light_voltage_v` / `light_relative_pct` are the PT550
+  relative light signal. They must never be presented as lux/PAR/PPFD
+  without a documented calibration.
 - `water_level_state` is nullable: present only when the optional XKC-Y25-T12V
   hardware is installed. All consumers must tolerate NULL.
 - Ammonia has no automatic field. Any ammonia value is a
@@ -26,11 +27,13 @@
 | id | BIGSERIAL | PK | |
 | device_id | TEXT | NOT NULL | Source device identity |
 | recorded_at | TIMESTAMPTZ | NOT NULL | Device-side reading time |
+| timestamp_ms | BIGINT | nullable | Device millis() counter as sent (S20, contract alignment) |
 | temperature_c | DOUBLE PRECISION | | DS18B20, degC |
 | ph | DOUBLE PRECISION | | SEN0161-V2 via ADS1115 A1 |
 | light_raw | INTEGER | | PT550 raw ADC counts (ADS1115 A3) |
+| light_relative_pct | DOUBLE PRECISION | nullable | PT550 relative light % as sent (S20, contract alignment); never lux/PAR/PPFD |
 | light_voltage_v | DOUBLE PRECISION | | PT550 converted voltage |
-| water_level_state | TEXT | nullable | Optional XKC only |
+| water_level_state | TEXT | nullable | Optional XKC only; '0'/'1'/NULL per docs/Telemetry_Contract.md |
 | wifi_rssi_dbm | INTEGER | nullable | Link quality when Wi-Fi transport used |
 | firmware_version | TEXT | NOT NULL | Traceability |
 | experiment_id | TEXT | nullable | Experiment association |

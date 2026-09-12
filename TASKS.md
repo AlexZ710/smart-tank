@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S20 (S01-S19 complete - core milestone closed, web contract frozen; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S19 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; web build S20-S28 next)
+- Current session for a fresh repo: S21 (S01-S20 complete - core milestone closed, web contract frozen, local DB workflow committed; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S20 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; S20 live Docker init blocked on host - WSL not installed, static validation done; web build S21-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -438,26 +438,26 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S20 (Docker PostgreSQL and Schema): create committed docker-compose for Postgres (pinned tag), `.env.example` placeholders only, apply `database/schema.sql` idempotently, capture compose config + apply log + table listing as evidence per `docs/Web_Acceptance_Criteria.md` S20 checklist. Hardware follow-ups unchanged.
 
 ## Session 20 - Docker PostgreSQL and Schema
-**Status:** NOT_STARTED
+**Status:** COMPLETE (static-validated; live engine run blocked on host - see deviations)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S20/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test (static: compose config + schema consistency/idempotency checks + policy audits; live compose up BLOCKED)
+- [x] Save evidence under `evidence/S20/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `docker-compose.yml` (rewritten: pinned `postgres:17.4-alpine`, container `smart_tank_db`, env from `.env` with dev-placeholder defaults, `127.0.0.1:5432` localhost-only binding, named volume + read-only `database/schema.sql` mount at `/docker-entrypoint-initdb.d/01_schema.sql` for first-init auto-apply, `pg_isready` healthcheck), `.env.example` (rewritten: placeholders only - POSTGRES_*, DATABASE_URL, DEVICE_INGEST_TOKEN=replace-with-long-random-local-value, empty AI_PROVIDER/AI_API_KEY, STALE_AFTER_S=180), `database/schema.sql` (appended idempotent contract alignment: `ALTER TABLE telemetry_readings ADD COLUMN IF NOT EXISTS timestamp_ms BIGINT` + `light_relative_pct DOUBLE PRECISION`, with comment referencing frozen `docs/Telemetry_Contract.md`; NULL = not measured, never defaulted), `database/README.md` (rewritten: quick start, idempotent re-apply command, `\dt` verification with 5 expected tables, connection string policy, secrets policy (smart_tank_dev_only = documented local dev placeholder), device-JSON→column contract mapping table, change control, volume reset), `docs/data_schema.md` (telemetry_readings table gains timestamp_ms + light_relative_pct rows; water_level_state note now '0'/'1'/NULL per contract; boundary rule extended to light_relative_pct), `evidence/S20/validation_output.txt` (new), `evidence/S20/check_schema_consistency.py` (new static checker), `TASKS.md`. Untracked/gitignored: `.env.local` received operator-provided AI provider credentials (AI_PROVIDER/AI_API_KEY/AI_MODEL/AI_BASEURL) per user instruction 2026-09-12 - verified ignored via `.gitignore:10`, never committed; repo-tracked files hold placeholders only.
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S20/validation_output.txt` (2026-09-12). [1] Live-engine attempt: Docker client 29.7.2 present, daemon unreachable ("Docker Desktop is unable to start"; `wsl --status` = WSL not installed) - engine UNAVAILABLE on this host. [2] `docker compose config` client-side parse + env interpolation: exit=0 (pinned image, healthcheck, localhost binding, ro schema mount, named volume all resolve). [3] `evidence/S20/check_schema_consistency.py`: ALL CHECKS PASSED - A1/A2 every CREATE/ALTER uses IF NOT EXISTS (6+2 statements); B2 telemetry_readings columns in schema.sql == docs/data_schema.md exactly (15 columns, zero drift); C all five frozen contract fields stored + xkc_level_state→water_level_state mapping documented; D zero forbidden-sensor columns. [4] Secrets: `.env.example` placeholder-only; `.env`/`.env.local` gitignored (check-ignore proof). [5]+[5a] Forbidden-term audit of touched files: 2 residual hits, both rejection/boundary prose - PASS. [6] Full suite: 90 passed. [7] Provisioning policy: PASSED.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** (1) BLOCKER: Docker engine cannot run on this host - WSL is not installed and installing it requires admin elevation + Windows feature enablement + reboot, which cannot be completed unattended. The S20 acceptance items "schema apply log" and "`\dt` listing" (docs/Web_Acceptance_Criteria.md) are therefore DEFERRED, not skipped: schema.sql is fully idempotent (verified statically), so `docker compose up -d && docker compose exec postgres psql -U smart_tank -d smart_tank -c "\dt"` on any WSL2-capable host (or after `wsl --install` + reboot here) must show the 5 tables. Live init recorded as a pending follow-up for S21+ (web dev server needs the DB for API routes; S21 scaffold itself does not). (2) Deviation: closed via static validation under the user's rush directive ("we need to rush to complete all the sessions"), consistent with the S05-S08 hardware-blocked pattern. (3) Unavailable-sensor drift review: no ORP/EC/ZP4510/FS300A columns added; schema checker enforces their absence permanently; xkc state stays nullable ('0'/'1'/NULL).
 
-**Commit:** _pending_
+**Commit:** `feat: add local PostgreSQL schema and Docker workflow`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S21 (Next.js and Tailwind Scaffold): scaffold `web/` (App Router + Tailwind), six page routes as placeholders per frozen `docs/Web_Facade_Architecture.md`, `npm run build` must pass, scan build artifacts for secrets (DATABASE_URL/token strings must not appear in client bundle), evidence = build log + route list + bundle scan to `evidence/S21/`. Carry forward: live Docker/WSL init follow-up (run compose up + `\dt` once a working engine exists); S04-S08 board captures; EXP01-EXP05 execution; S23 runtime verification.
 
 ## Session 21 - Next.js and Tailwind Scaffold
 **Status:** NOT_STARTED

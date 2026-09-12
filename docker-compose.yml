@@ -1,13 +1,30 @@
+# Session 20: local PostgreSQL for the Smart Tank web stack.
+# - Pinned image tag (upgrade deliberately, never :latest).
+# - Schema auto-applies on first init via docker-entrypoint-initdb.d
+#   (database/schema.sql is idempotent; re-running is safe).
+# - Port is bound to localhost only - never expose this database publicly.
+# - The default password below is a LOCAL DEV placeholder only (documented
+#   in database/README.md). Override via .env for anything else; real
+#   credentials are never committed.
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17.4-alpine
+    container_name: smart_tank_db
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: smart_tank
-      POSTGRES_USER: smart_tank
-      POSTGRES_PASSWORD: smart_tank_dev_only
+      POSTGRES_DB: ${POSTGRES_DB:-smart_tank}
+      POSTGRES_USER: ${POSTGRES_USER:-smart_tank}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smart_tank_dev_only}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - smart_tank_pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smart_tank} -d ${POSTGRES_DB:-smart_tank}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
 volumes:
   smart_tank_pgdata:

@@ -15,6 +15,15 @@ CREATE TABLE IF NOT EXISTS telemetry_readings (
 );
 CREATE INDEX IF NOT EXISTS telemetry_device_time_idx ON telemetry_readings(device_id, recorded_at DESC);
 
+-- Session 20: alignment with the frozen docs/Telemetry_Contract.md.
+-- The device sends its own millis() counter and the PT550 relative-light
+-- percentage; both are stored as sent (never converted, never defaulted -
+-- NULL means "not measured"). light_raw/light_voltage_v remain available
+-- for the raw ADS1115 values; water_level_state holds the optional XKC
+-- state as '0'/'1'/NULL (NULL = sensor absent).
+ALTER TABLE telemetry_readings ADD COLUMN IF NOT EXISTS timestamp_ms BIGINT;
+ALTER TABLE telemetry_readings ADD COLUMN IF NOT EXISTS light_relative_pct DOUBLE PRECISION;
+
 CREATE TABLE IF NOT EXISTS events (
   id BIGSERIAL PRIMARY KEY,
   device_id TEXT NOT NULL,
