@@ -19,3 +19,10 @@ data/mock/*.csv
 data/mock/*.png
 data/manual/*.csv
 !data/manual/.gitkeep
+
+# Web scaffold (S21): Node/Next.js build artifacts - never committed
+node_modules/
+.next/
+web/next-env.d.ts
+web/*.tsbuildinfo
+npm-debug.log*

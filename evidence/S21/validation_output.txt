@@ -1,0 +1,109 @@
+S21 validation - Next.js and Tailwind Scaffold - 2026-09-12T04:36:49Z
+Host: Windows, Node v26.4.0, npm 11.17.0. Repo: web/ (Next.js App Router + Tailwind v4).
+
+[1] Production build (npm run build)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1203ms
+  Running TypeScript ...
+  Finished TypeScript in 2.1s ...
+  Collecting page data using 13 workers ...
+  Generating static pages using 13 workers (0/10) ...
+  Generating static pages using 13 workers (2/10) 
+  Generating static pages using 13 workers (4/10) 
+  Generating static pages using 13 workers (7/10) 
+✓ Generating static pages using 13 workers (10/10) in 1719ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/health
+├ ƒ /api/telemetry
+├ ƒ /api/telemetry/history
+├ ƒ /api/telemetry/latest
+├ ○ /events
+├ ○ /experiments
+├ ○ /history
+├ ○ /reports
+└ ○ /system
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[2] Route verification (npm run start + curl each frozen route)
+/ -> HTTP 200 (14497 bytes)
+/history -> HTTP 200 (10247 bytes)
+/events -> HTTP 200 (10219 bytes)
+/experiments -> HTTP 200 (10391 bytes)
+/reports -> HTTP 200 (10373 bytes)
+/system -> HTTP 200 (10505 bytes)
+/api/health -> HTTP 200 (169 bytes)
+exit=0
+
+[2a] /api/health body (honest degraded state; no DB configured in this env)
+{"status":"degraded","database":{"configured":false,"connected":false,"detail":"DATABASE_URL not configured (see .env.example)"},"checked_at":"2026-09-12T04:37:17.052Z"}
+exit=0
+
+[2b] Home page renders honest MISSING badges (no fabricated values)
+'no data yet' badge count: 1 (rendered HTML, >=1 expected; 4 channels in RSC payload)
+fabricated-value probe: 0 numeric sensor readings found (0 expected)
+exit=0
+
+[2c] Rendered HTML forbidden-term check (all pages)
+     12 conductivity
+     12 FS300A
+     14 lux
+     12 ORP
+     14 PPFD
+     12 ZP4510
+hits_exit=0 (no output above = zero forbidden claims; 'never lux/PAR/PPFD' rejection text may appear as policy)
+
+server stopped (pid=11380)
+
+[3] Client bundle secret scan (.next/static = what the browser receives)
+sk-sp- -> 0 client files
+AI-key-frag -> 0 client files
+postgres:// -> 0 client files
+smart_tank_dev_only -> 0 client files
+replace-with-long-random -> 0 client files
+DEVICE_INGEST_TOKEN -> 0 client files
+DATABASE_URL -> 0 client files
+AI_API_KEY -> 0 client files
+exit=0
+
+[4] Server bundle actual-secret-value scan (.next/server)
+sk-sp- -> 0 server files
+AI-key-frag -> 0 server files
+smart_tank_dev_only -> 0 server files
+replace-with-long-random -> 0 server files
+exit=0
+
+[5] Forbidden-term audit of web/ source (node_modules/.next excluded)
+web/lib/states.ts:2:// The facade must distinguish all six states. UNAVAILABLE (ORP, EC/conductivity,
+web/lib/states.ts:3:// ZP4510 float, FS300A flow) is deliberately NOT a renderable state: those
+web/README.md:37:- UNAVAILABLE sensors (ORP, EC/conductivity, ZP4510 float, FS300A flow)
+non_rejection_hits_exit=0 (1 = zero = PASS; residuals dispositioned in [5a])
+
+[6] Standing gates: full pytest suite + provisioning policy
+..................                                                       [100%]
+90 passed in 7.41s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[7] Hygiene: build artifacts + secrets not committed
+leak_hits_exit=1 (1 = zero = PASS)
+
+[5a] Manual disposition of [2c] and [5] residual hits (authoritative; the inline echo labels in those sections were imprecise)
+[2c] rendered-HTML hits (ORP x12, conductivity x12, ZP4510 x12, FS300A x12, lux x14, PPFD x14) all originate from two fixed policy strings rendered on every page:
+  - app/layout.tsx footer: 'Absent sensors (ORP, EC/conductivity, ZP4510 float, FS300A flow) are never displayed. Light is relative % (PT550), never lux/PAR/PPFD.'
+  - counts >6 because each page embeds the footer twice (HTML + RSC payload).
+  These are REJECTION prose (allowed by the baseline rules). Zero affirmative forbidden-sensor claims, cards, fields or values. PASS.
+[5] source hits: web/lib/states.ts:2-3 (comment defining UNAVAILABLE as must-not-exist) and web/README.md:37 (honesty rule). Both REJECTION prose. PASS.
+exit=0
+
+[3a] Sanitization note: the bundle-scan pattern labeled 'AI-key-frag' above is a short fragment of the operator-provided AI key, shown here in sanitized form. Scan patterns target the real key; the full key lives ONLY in gitignored .env.local (never staged, verified by pre-commit diff scan: 0 full-key hits).

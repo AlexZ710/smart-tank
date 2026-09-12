@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S21 (S01-S20 complete - core milestone closed, web contract frozen, local DB workflow committed; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S20 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; S20 live Docker init blocked on host - WSL not installed, static validation done; web build S21-S28 next)
+- Current session for a fresh repo: S22 (S01-S21 complete - core milestone closed, web contract frozen, local DB workflow committed, web facade scaffolded: Next.js 16.3.5 + Tailwind 4.3.3 pinned, six routes + /api/health verified, bundle secret-scan clean; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S21 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - S22 must tolerate/degrade honestly without DB; web build S22-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -460,26 +460,26 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S21 (Next.js and Tailwind Scaffold): scaffold `web/` (App Router + Tailwind), six page routes as placeholders per frozen `docs/Web_Facade_Architecture.md`, `npm run build` must pass, scan build artifacts for secrets (DATABASE_URL/token strings must not appear in client bundle), evidence = build log + route list + bundle scan to `evidence/S21/`. Carry forward: live Docker/WSL init follow-up (run compose up + `\dt` once a working engine exists); S04-S08 board captures; EXP01-EXP05 execution; S23 runtime verification.
 
 ## Session 21 - Next.js and Tailwind Scaffold
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S21/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S21/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `web/package.json` (all deps pinned exactly - next 16.3.5, react 19.3.0, pg 8.23.0, tailwindcss/@tailwindcss/postcss 4.3.3, typescript 6.0.3; removed unconfigured eslint tooling - lint belongs to S27 hardening), `web/package-lock.json` (new, committed for reproducibility), `web/lib/states.ts` (new: frozen six-state semantics - DataState type WITHOUT UNAVAILABLE as renderable, STALE_AFTER_S env-driven default 180, stateForValue() with optional-channel handling, ageLabel(); comments enforce absent-sensor must-not-exist rule), `web/components/SiteHeader.tsx` (new: responsive nav - desktop link row + mobile disclosure menu, active-route highlight, frozen six-page set), `web/components/DataStateBadge.tsx` (new: honest state badges current/stale(age)/no data yet/not installed/manual), `web/components/PlaceholderPage.tsx` (new: shared honest empty-state for S24-S26 pages, never invents values), `web/app/layout.tsx` (SiteHeader + honesty footer: monitoring-only, [REQUIRES HUMAN CONFIRMATION], absent sensors never displayed, relative-% light, manual-only salinity/ammonia), `web/app/page.tsx` (Live Status scaffold: direct DB probe with try/catch - no self-fetch; 4 channel cards Temperature/pH/Relative light %/Water level(optional) each with data-state badge; renders MISSING honestly when no DB; force-dynamic), `web/app/api/health/route.ts` (new: GET /api/health per frozen API surface - reports {status, database:{configured,connected,detail}, checked_at}; credential-scrubbed error detail; degraded not 500), `web/app/{history,events,experiments,reports,system}/page.tsx` (placeholders via PlaceholderPage citing their implementing sessions S24-S26 and honest empty-state copy), `web/README.md` (rewritten: quick start, route/session table, frozen honesty rules, secrets policy, pinning policy), `web/tsconfig.json` (updated by next build itself: jsx react-jsx, .next/dev/types include - standard tooling change), `.gitignore` (added node_modules/, .next/, web/next-env.d.ts, web/*.tsbuildinfo, npm-debug.log*), `TASKS.md`, `evidence/S21/validation_output.txt` (new). NOT touched (S22 scope): `web/lib/validation.ts`, `web/app/api/telemetry/**` starter stubs - they still deviate from the frozen contract (ranges -20..80 vs contract -10..85, no forbidden-field rejection, no batch/timestamp_ms/light_relative_pct); S22 must rewrite them per docs/Telemetry_Contract.md.
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S21/validation_output.txt` (2026-09-12). [1] `npm run build` -> compiled successfully, all 10 routes in route table (6 pages: / dynamic, 5 static placeholders; API: health + 3 telemetry stubs), exit=0. [2] `npm run start` + curl: all six frozen routes HTTP 200; [2a] /api/health honest degraded JSON (DATABASE_URL not configured in this env - no DB invented); [2b] home renders 4 "no data yet" MISSING badges, 0 fabricated numeric readings; [2c]+[5a] rendered-HTML forbidden-term hits all trace to the layout footer PROHIBITION prose (counts = 6 pages x 2 embeds) - zero affirmative claims, PASS. [3] Client bundle scan (.next/static): 0 files contain AI-key patterns (provider prefix + key fragment, sanitized in evidence)/postgres:///smart_tank_dev_only/replace-with-long-random/DEVICE_INGEST_TOKEN/DATABASE_URL/AI_API_KEY; full-key pattern verified absent from the staged diff (only sanitized scan labels appear). [4] Server bundle actual-secret-value scan: 0 hits. [5]+[5a] source audit residuals = states.ts UNAVAILABLE-definition comment + README honesty rule = rejection prose, PASS. [6] Standing gates: 90 pytest passed; provisioning policy PASSED. [7] Hygiene: web/node_modules, web/.next, next-env.d.ts gitignored; git status shows zero artifact/secret leaks.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** (1) Carried from S20: Docker engine unavailable on this host (WSL not installed), so the scaffold was validated WITHOUT a live database - by design every page degrades honestly (MISSING badges, /api/health degraded). Once an engine exists: `docker compose up -d` + `DATABASE_URL` in `web/.env.local` lights up real states. (2) Deviation: starter telemetry API stubs left in place (initial-commit skeleton) because rewriting ingestion to the frozen contract is explicitly S22 scope; README marks them as stubs. (3) eslint removed from package.json (script was broken without config; Next 16 does not lint at build) - S27 hardening to decide on lint tooling. (4) Unavailable-sensor drift review: DataState type deliberately excludes UNAVAILABLE; no ORP/EC/ZP4510/FS300A fields, cards or claims anywhere in web/; audits confirm only prohibition prose.
 
-**Commit:** _pending_
+**Commit:** `feat: scaffold responsive smart tank web facade`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S22 (Authenticated Telemetry Ingestion API): rewrite `web/app/api/telemetry/route.ts` + `web/lib/validation.ts` to the FROZEN `docs/Telemetry_Contract.md` (Bearer DEVICE_INGEST_TOKEN; per-field nullable ranges -10..85 / 0..14 / 0..100, xkc in {0,1,null}; forbidden fields -> 400; batch cap 500; partial-success {accepted, rejected[]}; store timestamp_ms + light_relative_pct; 401/400/429 semantics), align latest/history routes with contract GET shapes + six-state computation, add rate limiting, test with the engine down (honest degradation) and document the live-DB test as pending Docker/WSL. Evidence to `evidence/S22/`. Hardware follow-ups unchanged (S04-S08 captures; EXP01-EXP05; S23 runtime verification; live compose up + \dt once an engine exists).
 
 ## Session 22 - Authenticated Telemetry Ingestion API
 **Status:** NOT_STARTED
