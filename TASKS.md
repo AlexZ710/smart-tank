@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S12 (S01-S11 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S11 fully validated host-side)
+- Current session for a fresh repo: S13 (S01-S12 complete; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S12 fully validated host-side)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -260,26 +260,26 @@
 **Resume pointer:** Proceed to S12 (Bounded AI Report). Outstanding hardware follow-ups unchanged (S04 serial capture; S05 portal/reboot/PROVISION/CLEAR_WIFI; S06 DS18B20; S07 I2C scan + CAL7/CAL4 buffers; S08 PT550 dark/light). Once real data lands in `data/raw/reef_data.csv`, rerun `python -m backend.collector.clean_data` then `python -m backend.rules.rules` to regenerate events.
 
 ## Session 12 - Bounded AI Report
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S12/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S12/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `backend/ai_agent/reef_agent.py` (rewritten: input guard rejecting forbidden-sensor columns with ValueError, valid-reading-only channel stats, optional XKC state reported only when real 0/1 states exist, manual-measurement section, deterministic event counts by rule_code, RECOMMENDATION_MAP producing observation/verification suggestions each with requires_human_confirmation=True rendered under [REQUIRES HUMAN CONFIRMATION], build_llm_prompt() emitting the exact bounded prompt for a future approved provider - no provider wired), `docs/prompt_boundary.md` (new: normative input/output/recommendation/LLM-provider boundaries + reproduction commands), `tests/test_reef_agent.py` (new, 21 tests incl. parametrized forbidden-column rejection fixtures), `scripts/generate_mock_telemetry.py` (pre-existing untracked helper swept into this commit by `git add -A`: deterministic, banner-labeled SYNTHETIC mock telemetry generator for hardware-free validation; complies with no-invented-telemetry rules - output is never presented as real data), `TASKS.md`, `evidence/S12/validation_output.txt` (new)
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S12/validation_output.txt` (2026-09-12). Host-side session - fully validated without hardware. `pytest tests/test_reef_agent.py -v` -> 21 passed (forbidden-column rejection proven for orp_mv/ec_us_cm/conductivity_ms/flow_lpm/zp4510_state/fs300a_flow/float_switch_state fixtures; confirmation markers enforced; determinism proven). Full suite `pytest tests -q` -> 54 passed (no regressions). Provisioning policy script PASSED. Live agent run on current pipeline state: raw capture is header-only (no board), so the agent honestly prints "No telemetry available." plus the boundary statement and the bounded LLM prompt - nothing invented. Two initial test-assertion false positives ("300" inside "FS300A", "par" inside "parameter") were fixed with line-scoped/word-boundary checks and re-run clean.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** _none recorded_ (unavailable-sensor drift review: forbidden terms appear only in rejection logic, boundary statements and negative test fixtures; salinity/ammonia manual-only; XKC absent-tolerant; no automatic dosing/mains switching anywhere - recommendations are human-confirmation-gated text only)
 
-**Commit:** _pending_
+**Commit:** `S12 bounded ai report`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S13 (Baseline Stability Experiment). NOTE: S13-S17 are experiment sessions requiring a populated tank, the assembled sensor rig and multi-day real captures - none possible until the pending S04-S08 board verifications land; expect blocked/deviation handling with honest no-invented-data closure. Outstanding hardware follow-ups unchanged (S04 serial capture; S05 portal/reboot/PROVISION/CLEAR_WIFI; S06 DS18B20; S07 I2C scan + CAL7/CAL4 buffers; S08 PT550 dark/light).
 
 ## Session 13 - Baseline Stability Experiment
 **Status:** NOT_STARTED

@@ -1,0 +1,62 @@
+== Session 12 validation - 2026-09-12T02:59:43Z ==
+
+[1] Bounded agent tests (pytest tests/test_reef_agent.py -v)
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- C:\Anaconda\envs\reef\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Alex1\Desktop\reeftank\smart-tank_BigBang\smart-tank\smart-tank
+collecting ... collected 21 items
+
+tests/test_reef_agent.py::test_empty_input_reports_no_telemetry_honestly PASSED [  4%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[orp_mv] PASSED [  9%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[ec_us_cm] PASSED [ 14%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[conductivity_ms] PASSED [ 19%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[flow_lpm] PASSED [ 23%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[zp4510_state] PASSED [ 28%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[fs300a_flow] PASSED [ 33%]
+tests/test_reef_agent.py::test_forbidden_sensor_columns_are_rejected[float_switch_state] PASSED [ 38%]
+tests/test_reef_agent.py::test_guard_columns_accepts_allowed_frame PASSED [ 42%]
+tests/test_reef_agent.py::test_summary_uses_only_valid_readings_in_stats PASSED [ 47%]
+tests/test_reef_agent.py::test_summary_has_no_unsupported_measurement_claims PASSED [ 52%]
+tests/test_reef_agent.py::test_xkc_absent_is_not_mentioned_or_fabricated PASSED [ 57%]
+tests/test_reef_agent.py::test_xkc_present_states_are_reported PASSED    [ 61%]
+tests/test_reef_agent.py::test_manual_measurements_are_included_and_labeled PASSED [ 66%]
+tests/test_reef_agent.py::test_recommendations_require_human_confirmation PASSED [ 71%]
+tests/test_reef_agent.py::test_recommendations_dedup_by_rule_code PASSED [ 76%]
+tests/test_reef_agent.py::test_no_events_means_no_recommendations PASSED [ 80%]
+tests/test_reef_agent.py::test_summary_renders_confirmation_markers PASSED [ 85%]
+tests/test_reef_agent.py::test_unknown_rule_code_gets_no_invented_recommendation PASSED [ 90%]
+tests/test_reef_agent.py::test_llm_prompt_embeds_summary_and_constraints PASSED [ 95%]
+tests/test_reef_agent.py::test_determinism_same_input_same_summary PASSED [100%]
+
+============================= 21 passed in 1.05s ==============================
+exit=0
+
+[2] Full test suite (pytest tests -q)
+......................................................                   [100%]
+54 passed in 3.36s
+exit=0
+
+[3] Wi-Fi provisioning policy check (standing, every session)
+Provisioning policy validation PASSED
+exit=0
+
+[4] Agent run on current pipeline state (clean + events from local raw capture)
+No telemetry available. Boundary: ORP, EC/conductivity, ZP4510 float state, FS300A flow and any other unlisted parameter are NOT measured in this hardware baseline. Salinity and ammonia exist only as manual measurements. Nothing in this report may be acted on automatically.
+
+--- bounded LLM prompt (no provider connected) ---
+You are a bounded aquarium reporting assistant for a 5 L monitoring-only reef tank.
+Rules you must follow:
+1. Use ONLY the observed data embedded below. Never invent, estimate or interpolate measurements.
+2. ORP, EC/conductivity, flow and float-switch data are NOT measured by this system; never claim otherwise.
+3. Light is a relative percentage only; never express it as lux, PAR or PPFD.
+4. Every recommendation you repeat must keep its [REQUIRES HUMAN CONFIRMATION] marker and be phrased as a suggestion for a human to confirm. Never instruct automatic dosing or mains switching.
+5. If the data is insufficient, say so explicitly.
+
+Observed data:
+No telemetry available. Boundary: ORP, EC/conductivity, ZP4510 float state, FS300A flow and any other unlisted parameter are NOT measured in this hardware baseline. Salinity and ammonia exist only as manual measurements. Nothing in this report may be acted on automatically.
+
+exit=0
+
+[5] Note: data/raw/reef_data.csv is header-only (no ESP32-S3 board attached), so the
+    agent honestly reports 'No telemetry available.' - nothing invented.
