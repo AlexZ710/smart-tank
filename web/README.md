@@ -22,13 +22,14 @@ from the repo root) and set `DATABASE_URL` in `.env.local`.
 | Route | Status | Session |
 |---|---|---|
 | `/` Live Status | live — polls `/api/telemetry/latest` every 15 s; per-channel six-state badges, stale dimmed with age, XKC "not installed" when null, honest empty/DB-down states | S24 |
-| `/history` | honest placeholder | S25 |
-| `/experiments` | honest placeholder | S25 |
+| `/history` | live — bounded range queries (presets + custom window + limit ≤ 5000), per-device small-multiple SVG charts, gaps drawn as breaks (never interpolated), table-view twin, honest truncation/empty/DB-down states | S25 |
+| `/experiments` | live — read-only timeline from `experiment_markers` + manual-measurement provenance (MANUAL badge, measured_at + method) | S25 |
 | `/events` | honest placeholder | S26 |
 | `/reports` | honest placeholder | S26 |
 | `/system` | live — app health, per-process ingestion error counts, per-device last-seen; secret-free | S24 |
 | `GET /api/health` | live — contract shape `{status, database: up/down, version}` (S22) | S21+S22 |
 | `GET /api/system/stats` | live — aggregate ingestion counters + web process uptime; per-process scope stated in the response (shared store is an S27 item) | S24 |
+| `GET /api/experiments` | live — READ-ONLY markers + manual measurements (limit ≤ 2000, truncation flags); never writes raw data; honest 503 when DB down | S25 |
 | `POST /api/telemetry` | live — Bearer DEVICE_INGEST_TOKEN (timing-safe), contract ranges, forbidden fields → 400, batch cap 500 → 413, rate limit → 429, partial success `{accepted, rejected[]}`, null stored as NULL, honest 503 when DB down ("readings NOT stored") | S22 |
 | `GET /api/telemetry/latest` | live — newest per device + six-state channels; `{"devices": []}` when empty | S22 |
 | `GET /api/telemetry/history` | live — `from`/`to` required, channel whitelist, limit ≤ 5000, ascending, gaps never interpolated | S22 |

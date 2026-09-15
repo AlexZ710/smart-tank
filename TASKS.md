@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S25 (S01-S24 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract, S23 Wi-Fi telemetry sketch compile-verified (1081077 B flash / 82%, runtime HARDWARE-GATED - no board attached), S24 Live Status + System Health UI live (six-state badges, stale dimmed, XKC "not installed", per-process ingestion counters, secret-free; DB-backed data paths degrade honestly until an engine exists); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S24 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip + S23 on-device telemetry deferred; web build S25-S28 next)
+- Current session for a fresh repo: S26 (S01-S25 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract, S23 Wi-Fi telemetry sketch compile-verified (1081077 B flash / 82%, runtime HARDWARE-GATED - no board attached), S24 Live Status + System Health UI live, S25 History charts + experiment timeline live (bounded queries, gaps drawn as breaks - never interpolated, validated chart palette light+dark, read-only /api/experiments with MANUAL provenance; DB-backed data paths degrade honestly until an engine exists); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S25 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip + S23 on-device telemetry deferred; web build S26-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -552,26 +552,26 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S25 (History Charts and Experiment Markers): wire `/history` to GET /api/telemetry/history (from/to range selection, channel whitelist UI, limit, ascending order, gaps NEVER interpolated - render discontinuities honestly) and `/experiments` to the experiment_markers table (timeline + manual provenance; DB-down -> honest empty). Evidence to `evidence/S25/`. Carry forward: S24 live-badge check when DB engine exists; S23 runtime captures when board attached; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 25 - History Charts and Experiment Markers
-**Status:** NOT_STARTED
+**Status:** COMPLETE (UI live + validated; DB-backed data display degraded-honest until an engine exists - S20 blocker)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S25/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S25/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `web/lib/charting.ts` (NEW: pure data-prep - segmentByGaps splits ascending series wherever consecutive STORED samples are > GAP_BREAK_S=180 s apart (aligned with frozen STALE_AFTER_S), purely subtractive: concatenated segments == input exactly, never invents/drops/reorders; niceTicks 1/2/5x10^k clean steps, flat series -> single tick (range never invented); groupRowsByDevice order-preserving), `web/components/TimeSeriesChart.tsx` (NEW: inline SVG line chart, no chart library - deps stay pinned; dataviz spec: 2px round-join slot-1-blue line validated >=3:1 on both surfaces, hairline SOLID gridlines, crosshair snapping to nearest STORED sample + value-first tooltip with line key, keyboard focus (arrows/Home/End/Escape) same readout, 8px end marker + 2px surface ring, direct end-label in text ink, table-view twin listing exact stored rows, gaps drawn as line breaks, honest per-card empty note), `web/components/HistoryPanel.tsx` (NEW: one filter row above everything it scopes - date-range presets (1h/24h/7d/30d) first + custom window + limit 500/1000/5000 + device_id; single bounded fetch of GET /api/telemetry/history (all columns), per-device small multiples (temperature °C, pH, relative light %); stored NULLs skipped never zero-filled; truncation at limit stated verbatim (OLDEST rows in window, API never downsamples); refetch holds previous frame at reduced opacity; empty-range/503 honest notices; XKC deliberately NOT line-drawn (binary state - raw via channel=water_level_state)), `web/components/ExperimentsPanel.tsx` (NEW: read-only timeline grouped by experiment_id from GET /api/experiments + manual-measurement table with MANUAL badge, measured_at, method, operator_note; honest empty states citing EXP01-EXP05 pending hardware), `web/app/api/experiments/route.ts` (NEW: READ-ONLY GET - experiment_markers + manual_measurements mirrored, limit <= 2000 -> 400 over, truncation flags, ascending, DB down -> 503 honest empty arrays; never writes raw data), `web/app/history/page.tsx` + `web/app/experiments/page.tsx` (REWRITTEN from placeholders to render panels), `web/app/globals.css` (.viz chart-role CSS vars, both modes SELECTED), `web/tests/charting.test.ts` (NEW: 9 tests), `web/README.md` (route table), `evidence/S25/*` (NEW), `TASKS.md`.
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S25/validation_output.txt` + `run_validation.sh` (2026-09-15). [1] web tests 40/40 (31 prior + 9 charting: gap-break boundary >180 s exact, no-invention equality, flat-series single tick, device grouping). [2] build green: 8/8 pages, /api/experiments dynamic. [2a] dataviz palette validation BEFORE chart code: #2a78d6 on #ffffff light + #3987e5 on #09090b dark -> ALL CHECKS PASS both modes (validator output recorded). [3] live matrix (production server, DATABASE_URL unset): /history 200, /experiments 200; history no-args 400, bad range 400, channel=orp_mv 400 (whitelist names allowed channels only), limit=9999 400, valid query -> 503 {"rows":[],"error":"database unavailable"}; /api/experiments -> 503 honest empty arrays, limit=99999 -> 400; rendered HTML secret scan 0 hits for all patterns. [4] bundle scan: throwaway token/sk-sp-/postgres:// 0 client + 0 server; env NAMES server-only (expected). [5] forbidden-term audit of all S25 sources: non_rejection_hits_exit=1 (zero). [6] pytest 90 passed; provisioning policy PASSED. [7] hygiene PASS.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** (1) DB engine still unavailable (S20 WSL blocker): charts/timeline could not be exercised against real stored rows - validated instead via unit tests (segmentation/ticks), the live honest-degradation matrix (400/503/empty paths), and the S22 contract. When the engine exists: seed or ingest rows with a deliberate gap, confirm the line breaks at >180 s and the table view lists only stored rows; insert markers/manual rows and confirm the timeline + MANUAL badges. (2) No schema change needed (read-only session; markers/manual rows already modeled by S20 schema). (3) Unavailable-sensor drift review: no ORP/EC/ZP4510/FS300A anywhere in S25 sources (audit zero); history channel whitelist still rejects orp_mv with 400; light charted as relative % only with "never lux/PAR/PPFD" caption; salinity/ammonia appear ONLY as MANUAL-labeled rows with provenance. (4) XKC history intentionally not line-charted (binary state; drawing it as a continuous line would misrepresent) - documented in the panel caption.
 
-**Commit:** _pending_
+**Commit:** `feat: add history charts and experiment timeline`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S26 (Events and AI Report UI): wire /events to GET /api/events (S11 frozen vocabulary TEMP_*/PH_* only, severity filter warning|critical, rule_code filter, limit <= 1000) and /reports to GET /api/reports (bounded agent per docs/prompt_boundary.md, [REQUIRES HUMAN CONFIRMATION] markers preserved verbatim, generated-at + scope window + provenance shown). Evidence to `evidence/S26/`. Carry forward: S25 live-data checks when DB engine exists; S24 live-badge check; S23 runtime captures when board attached; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 26 - Events and AI Report UI
 **Status:** NOT_STARTED

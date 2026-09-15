@@ -1,14 +1,24 @@
-import PlaceholderPage from "@/components/PlaceholderPage";
+import ExperimentsPanel from "@/components/ExperimentsPanel";
+
+// S25: Experiments page - timeline from the experiment_markers table plus
+// manual-measurement provenance, via READ-ONLY GET /api/experiments.
+// Markers are manual operator records - never auto-generated, never altered
+// by the UI. Manual salinity/ammonia entries always render labeled MANUAL
+// with measured_at + method.
 
 export const metadata = { title: "Experiments — Smart Tank" };
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="Experiments"
-      session="S25 (history charts and experiment markers)"
-      description="Experiment timeline and markers. Markers are manual records entered by the operator — they are never auto-generated. Manual salinity/ammonia entries always render labeled: manual · measured_at · method."
-      emptyState="No experiments or markers are displayed yet. EXP01–EXP05 protocols are prepared (experiments/); their execution is pending hardware and a running tank."
-    />
+    <>
+      <h1 className="text-3xl font-bold">Experiments</h1>
+      <p className="mt-2 text-sm opacity-70">
+        Experiment timeline and manual-operation records. Markers are manual operator entries
+        (host tooling / seeded imports) — this page is read-only and never alters raw data.
+        Manual-only channels (salinity, ammonia) always show the MANUAL badge with measured_at
+        and method.
+      </p>
+      <ExperimentsPanel />
+    </>
   );
 }

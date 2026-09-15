@@ -1,0 +1,98 @@
+S25 validation - History Charts and Experiment Markers - 2026-09-15T15:21:19Z
+Host: Windows, Node v26.4.0. DB engine still unavailable (S20 blocker, WSL not installed):
+DB-backed history/experiment paths validated for HONEST degradation (503 / empty states), never fake rows.
+
+[1] Web unit tests (node --test: validation, ratelimit, states, ingestStats, charting)
+ℹ tests 40
+ℹ pass 40
+ℹ fail 0
+exit=0
+
+[2] Production build
+  Generating static pages using 15 workers (4/8) 
+  Generating static pages using 15 workers (6/8) 
+✓ Generating static pages using 15 workers (8/8) in 1381ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/experiments
+├ ƒ /api/health
+├ ƒ /api/system/stats
+├ ƒ /api/telemetry
+├ ƒ /api/telemetry/history
+├ ƒ /api/telemetry/latest
+├ ○ /events
+├ ○ /experiments
+├ ○ /history
+├ ○ /reports
+└ ○ /system
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[3] Live UI + API matrix (production server; DEVICE_INGEST_TOKEN set, DATABASE_URL unset)
+GET  /history            -> 200 (expect 200)
+History
+GET  /experiments        -> 200 (expect 200)
+Experiments
+GET  history no args     -> 400 {"error":"from and to (ISO-8601) are required"} (expect 400)
+GET  history bad range   -> 400 {"error":"from/to must be valid ISO-8601 timestamps"} (expect 400)
+GET  history chan orp_mv -> 400 {"error":"unknown channel; allowed: timestamp_ms, temperature_c, ph, light_relative_pct, light_voltage_v, water_level_state"} (expect 400 whitelist)
+GET  history limit 9999  -> 400 {"error":"limit must be an integer 1..5000 (over-max rejected per contract)"} (expect 400 cap)
+GET  history valid noDB  -> 503 {"rows":[],"error":"database unavailable","detail":"DATABASE_URL is not configured"} (expect 503 honest)
+GET  /api/experiments    -> 503 {"markers":[],"manual_measurements":[],"error":"database unavailable","detail":"DATABASE_URL is not configured"} (expect 503 honest, empty arrays)
+GET  experiments lim big -> 400 {"error":"limit must be an integer 1..2000"} (expect 400 cap)
+-- rendered HTML secret scan (/history and /experiments):
+  's25-local-test-token-only' hits in rendered HTML: 0 (expect 0)
+  'sk-sp-' hits in rendered HTML: 0 (expect 0)
+  'postgres://' hits in rendered HTML: 0 (expect 0)
+  'DATABASE_URL=' hits in rendered HTML: 0 (expect 0)
+  'Bearer ' hits in rendered HTML: 0 (expect 0)
+exit=0
+(server stopped pid=20100)
+
+[4] Bundle secret scan (client .next/static + server actual-value scan)
+s25-local-test-token-only -> client:0 server:0
+sk-sp- -> client:0 server:0
+AI-key -> client:0 server:0
+postgres:// -> client:0 server:0
+smart_tank_dev_only -> client:0 server:0
+replace-with-long-random -> client:0 server:0
+DEVICE_INGEST_TOKEN -> client:0 server:2
+DATABASE_URL -> client:0 server:11
+AI_API_KEY -> client:0 server:0
+note: server-side occurrences of the env-var NAMES (process.env.X) are expected and safe; VALUES must be 0 everywhere.
+exit=0
+
+[5] Forbidden-term audit of S25 sources (residuals must be rejection/manual-only prose)
+non_rejection_hits_exit=1
+
+[6] Standing gates: pytest + provisioning policy
+..................                                                       [100%]
+90 passed in 4.33s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[7] Hygiene: no artifacts/secrets staged
+leak_hits_exit=1 (1 = zero = PASS)
+
+[2a] Chart palette validation (dataviz procedure step 3, run before chart code)
+Single-series small multiples -> categorical slot 1 blue, both modes SELECTED
+(not auto-flipped), validated against the actual app surfaces:
+  node scripts/validate_palette.js "#2a78d6" --mode light --surface "#ffffff"
+    -> Lightness band PASS, Chroma floor PASS, CVD n/a (1 slot), Contrast >=3:1 PASS
+    -> ALL CHECKS PASS
+  node scripts/validate_palette.js "#3987e5" --mode dark --surface "#09090b"
+    -> Lightness band PASS, Chroma floor PASS, CVD n/a (1 slot), Contrast >=3:1 PASS
+    -> ALL CHECKS PASS
+Chrome roles in web/app/globals.css (.viz): grid #e4e4e7/#27272a hairline SOLID,
+axis #d4d4d8/#3f3f46, muted #71717a/#a1a1aa. Marks per spec: 2px round-join
+line, r=4 end marker + 2px surface ring, crosshair snaps to nearest STORED
+sample, tooltip value-first, direct end-label in text ink, table-view twin per
+chart, keyboard focus (arrows/Home/End) shows the same readout.

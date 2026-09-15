@@ -1,3 +1,24 @@
 @import "tailwindcss";
 :root { color-scheme: light dark; }
 body { margin: 0; font-family: Arial, Helvetica, sans-serif; }
+
+/* S25 chart roles (dataviz spec): both modes are SELECTED, validated against
+   the actual app surfaces (bg-white / zinc-950). Line = categorical slot 1
+   blue, >= 3:1 contrast in both modes (validator: ALL CHECKS PASS).
+   Grid/axis are hairline solid, one step off the surface. */
+.viz {
+  --viz-line: #2a78d6;
+  --viz-grid: #e4e4e7;
+  --viz-axis: #d4d4d8;
+  --viz-muted: #71717a;
+  --viz-surface: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  .viz {
+    --viz-line: #3987e5;
+    --viz-grid: #27272a;
+    --viz-axis: #3f3f46;
+    --viz-muted: #a1a1aa;
+    --viz-surface: #09090b;
+  }
+}
