@@ -1,0 +1,109 @@
+S24 validation - Live Status and Device Health UI - 2026-09-15T14:58:56Z
+Host: Windows, Node v26.4.0. DB engine still unavailable (S20 blocker, WSL not installed):
+DB-backed UI paths are validated for HONEST degradation (empty state / 503 notice), never fake data.
+
+[1] Web unit tests (node --test: validation, ratelimit, states, ingestStats)
+ℹ tests 31
+ℹ pass 31
+ℹ fail 0
+exit=0
+
+[2] Production build
+  Generating static pages using 14 workers (0/8) ...
+  Generating static pages using 14 workers (2/8) 
+  Generating static pages using 14 workers (4/8) 
+  Generating static pages using 14 workers (6/8) 
+✓ Generating static pages using 14 workers (8/8) in 1425ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/health
+├ ƒ /api/system/stats
+├ ƒ /api/telemetry
+├ ƒ /api/telemetry/history
+├ ƒ /api/telemetry/latest
+├ ○ /events
+├ ○ /experiments
+├ ○ /history
+├ ○ /reports
+└ ○ /system
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[3] Live UI + stats matrix (production server; DEVICE_INGEST_TOKEN set, DATABASE_URL unset)
+GET  /                 -> 200 (expect 200)
+Live Status
+GET  /system           -> 200 (expect 200)
+System Health
+GET  /api/system/stats -> 200 (expect 200, fresh zeros)
+{"server":{"started_at":"2026-09-15T14:59:12.948Z","uptime_s":11},"ingestion":{"requests":0,"rows_accepted":0,"rows_rejected":0,"by_status":{},"errors_by_reason":{},"last_accepted_at":null,"last_error_at":null},"scope":"per server process (in-memory, resets on restart); shared store is an S27 hardening item"}
+POST wrong token x2    -> 401 401 (expect 401 401)
+POST malformed JSON    -> 400 (expect 400)
+POST forbidden orp     -> 400 (expect 400)
+POST valid (no DB)     -> 503 {"error":"database unavailable - readings NOT stored","detail":"DATABASE_URL is not configured"} (expect 503 honest)
+GET  /api/system/stats -> 200 (expect counters: requests=5, 401:2 400:2 503:1)
+{"server":{"started_at":"2026-09-15T14:59:12.675Z","uptime_s":12},"ingestion":{"requests":5,"rows_accepted":0,"rows_rejected":0,"by_status":{"400":2,"401":2,"503":1},"errors_by_reason":{"unauthorized":2,"malformed_json":1,"contract_violation":1,"database_unavailable":1},"last_accepted_at":null,"last_error_at":"2026-09-15T14:59:24.556Z"},"scope":"per server process (in-memory, resets on restart); shared store is an S27 hardening item"}
+GET  /api/health       -> 200 {"status":"degraded","database":"down","version":"0.2.0-s22","detail":"DATABASE_URL not configured (see .env.example)","checked_at":"2026-09-15T14:59:24.796Z"}
+-- rendered HTML secret scan (/ and /system):
+  's24-local-test-token-only' hits in rendered HTML: 0 (expect 0)
+  'sk-sp-' hits in rendered HTML: 0 (expect 0)
+  'postgres://' hits in rendered HTML: 0 (expect 0)
+  'DATABASE_URL=' hits in rendered HTML: 0 (expect 0)
+  'Bearer ' hits in rendered HTML: 1 (expect 0)
+exit=0
+(server stopped pid=15768)
+
+[4] Bundle secret scan (client .next/static + server actual-value scan)
+s24-local-test-token-only -> client:0 server:0
+sk-sp- -> client:0 server:0
+AI-key -> client:0 server:0
+postgres:// -> client:0 server:0
+smart_tank_dev_only -> client:0 server:0
+replace-with-long-random -> client:0 server:0
+DEVICE_INGEST_TOKEN -> client:0 server:2
+DATABASE_URL -> client:1 server:11
+AI_API_KEY -> client:0 server:0
+note: server-side occurrences of the env-var NAMES (process.env.X) are expected and safe; VALUES must be 0 everywhere.
+exit=0
+
+[5] Forbidden-term audit of S24 sources (residuals must be rejection/absence prose)
+non_rejection_hits_exit=1
+
+[6] Standing gates: pytest + provisioning policy
+..................                                                       [100%]
+90 passed in 7.43s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[7] Hygiene: no artifacts/secrets staged
+leak_hits_exit=1 (1 = zero = PASS)
+
+[3a] Manual disposition: 'Bearer ' hit in rendered /system HTML (1)
+The single hit is UI PROSE in the SystemHealthPanel security-posture card:
+"Ingestion requires a timing-safe Bearer token match; failures are counted
+above, bodies are never echoed." It is the word Bearer describing the auth
+scheme - no token value is rendered anywhere. To keep scans unambiguous the
+copy was reworded ("timing-safe token comparison") and the app rebuilt.
+
+[4a] Manual disposition: DATABASE_URL -> client:1 in first bundle scan
+The hit is the SAME security-posture list item quoting the env-var NAME in
+prose ("...ingest token, DATABASE_URL and Wi-Fi configuration never reach
+the browser.") inside web/components/SystemHealthPanel.tsx - not a
+connection string, not a value. Fixed by rewording to "database
+credentials"; post-rebuild rescan of web/.next/static:
+  DATABASE_URL -> client:0
+  Bearer  -> client:0
+  s24-local-test-token-only -> client:0
+  sk-sp- -> client:0
+  postgres:// -> client:0
+Server-side DATABASE_URL NAME references (process.env.DATABASE_URL in
+server chunks, 9 files) are expected and safe; zero VALUES anywhere.
+Final state: build green (8/8 pages), tests 31/31, live matrix exactly as
+expected in [3] (401/401/400/400/503 + honest counters + degraded health).

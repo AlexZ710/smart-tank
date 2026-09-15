@@ -1,4 +1,4 @@
-# Smart Tank Web Facade (S21 scaffold)
+# Smart Tank Web Facade (S24: live status + device health)
 
 Next.js (App Router) + Tailwind CSS v4 + PostgreSQL (`pg`), per the FROZEN
 `docs/Web_Facade_Architecture.md`. Monitoring-only observation dashboard for
@@ -21,22 +21,28 @@ from the repo root) and set `DATABASE_URL` in `.env.local`.
 
 | Route | Status | Session |
 |---|---|---|
-| `/` Live Status | scaffold with per-channel data-state badges | S24 completes |
+| `/` Live Status | live — polls `/api/telemetry/latest` every 15 s; per-channel six-state badges, stale dimmed with age, XKC "not installed" when null, honest empty/DB-down states | S24 |
 | `/history` | honest placeholder | S25 |
 | `/experiments` | honest placeholder | S25 |
 | `/events` | honest placeholder | S26 |
 | `/reports` | honest placeholder | S26 |
-| `/system` | honest placeholder | S24 |
+| `/system` | live — app health, per-process ingestion error counts, per-device last-seen; secret-free | S24 |
 | `GET /api/health` | live — contract shape `{status, database: up/down, version}` (S22) | S21+S22 |
+| `GET /api/system/stats` | live — aggregate ingestion counters + web process uptime; per-process scope stated in the response (shared store is an S27 item) | S24 |
 | `POST /api/telemetry` | live — Bearer DEVICE_INGEST_TOKEN (timing-safe), contract ranges, forbidden fields → 400, batch cap 500 → 413, rate limit → 429, partial success `{accepted, rejected[]}`, null stored as NULL, honest 503 when DB down ("readings NOT stored") | S22 |
 | `GET /api/telemetry/latest` | live — newest per device + six-state channels; `{"devices": []}` when empty | S22 |
 | `GET /api/telemetry/history` | live — `from`/`to` required, channel whitelist, limit ≤ 5000, ascending, gaps never interpolated | S22 |
 
 Tests: `npm test` (node:test, no extra deps) — contract validation matrix,
-rate limiter, data-state semantics. Live DB round-trip (actual INSERT +
-read-back) is pending a working Docker engine on the host (S20 blocker:
-WSL not installed); all DB-dependent paths are validated to degrade
-honestly with 503 instead of fabricating success.
+rate limiter, data-state semantics, ingestion stats counters. Live DB
+round-trip (actual INSERT + read-back) is pending a working Docker engine on
+the host (S20 blocker: WSL not installed); all DB-dependent paths are
+validated to degrade honestly with 503 instead of fabricating success.
+
+Ingestion stats (`/api/system/stats`, S24) are in-memory per server process
+— they reset on restart and are per instance, exactly like the rate limiter;
+a shared/persistent store is an S27 hardening item. The UI states this scope
+instead of implying durable history.
 
 Rate limit: 120 req/min per source, in-memory per instance (single-instance
 deployment; a shared store is required before multi-instance public demo —

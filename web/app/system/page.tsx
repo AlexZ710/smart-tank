@@ -1,14 +1,21 @@
-import PlaceholderPage from "@/components/PlaceholderPage";
+import SystemHealthPanel from "@/components/SystemHealthPanel";
+
+// S24: System Health page - application/database status, per-process
+// ingestion error counts and per-device last-seen. Secret-free by
+// construction: the polled endpoints expose statuses and aggregates only.
 
 export const metadata = { title: "System Health — Smart Tank" };
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="System Health"
-      session="S24 (live status and device health UI)"
-      description="Device and sensor health: last-seen time, uptime, ingestion errors. The optional XKC water-level sensor shows “not installed” when its state is null — an absent optional sensor is a valid, fully supported state."
-      emptyState="No device health data is displayed yet. Application/database health is already queryable at /api/health; device-level health (last seen, RSSI, firmware, ingestion errors) renders here once telemetry flows."
-    />
+    <>
+      <h1 className="text-3xl font-bold">System Health</h1>
+      <p className="mt-2 text-sm opacity-70">
+        Application health, ingestion error counts (per server process — resets on restart) and
+        per-device last-seen. No secrets are rendered on this page: tokens, database credentials
+        and Wi-Fi configuration never reach the browser.
+      </p>
+      <SystemHealthPanel />
+    </>
   );
 }

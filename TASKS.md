@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S24 (S01-S23 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract, S23 Wi-Fi telemetry sketch compile-verified (1081077 B flash / 82%, runtime HARDWARE-GATED - no board attached); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S23 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip + S23 on-device telemetry deferred; web build S24-S28 next)
+- Current session for a fresh repo: S25 (S01-S24 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract, S23 Wi-Fi telemetry sketch compile-verified (1081077 B flash / 82%, runtime HARDWARE-GATED - no board attached), S24 Live Status + System Health UI live (six-state badges, stale dimmed, XKC "not installed", per-process ingestion counters, secret-free; DB-backed data paths degrade honestly until an engine exists); S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S24 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip + S23 on-device telemetry deferred; web build S25-S28 next)
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -530,26 +530,26 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S24 (Live Status and Device Health UI): wire `/` and `/system` to real data via the S22 endpoints (latest per device + six-state badges, last-seen/uptime/ingestion errors, XKC "not installed" when null), polling or SSR refresh, honest STALE/MISSING/OPTIONAL_ABSENT treatment per frozen architecture; DB-dependent verification remains degraded-honest until an engine exists (S20 blocker). Evidence to `evidence/S24/`. Carry forward: S23 runtime captures + DB round-trip when hardware/engine available; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 24 - Live Status and Device Health UI
-**Status:** NOT_STARTED
+**Status:** COMPLETE (UI live + validated; DB-backed data display degraded-honest until an engine exists - S20 blocker)
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S24/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S24/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
-**Changed files:** _pending_
+**Changed files:** `web/app/page.tsx` (REWRITTEN: Live Status now renders `LiveStatusPanel`, no direct DB probe), `web/app/system/page.tsx` (REWRITTEN from placeholder to `SystemHealthPanel`), `web/components/LiveStatusPanel.tsx` (NEW, client: polls GET /api/telemetry/latest every 15 s; per-device last-seen + overall CURRENT/STALE badge; 4 ChannelCards with frozen six-state badges; STALE cards dimmed via opacity; XKC null -> "not installed" + "page works fully without it" hint; empty DB -> "No telemetry received yet" honest empty state; 503 -> "database unavailable... nothing fabricated" notice; fetch failure -> honest error, never fake-green), `web/components/SystemHealthPanel.tsx` (NEW, client: polls /api/health + /api/system/stats + /api/telemetry/latest; app health card (status/database/version/checked_at/scrubbed detail), ingestion card (requests, rows accepted/rejected, by HTTP status, errors by reason, last accepted/error, web process uptime, per-process scope note), devices last-seen table, security-posture card; unreachable sources render "unknown, not assumed ok/zero"), `web/components/ChannelCard.tsx` (NEW, extracted card: value only when stored data exists, null -> em-dash + state badge), `web/lib/ingestStats.ts` (NEW: in-memory per-process ingestion counters, injectable clock, fixed-vocabulary reason keys, immutable snapshots, no bodies/tokens/ids stored), `web/app/api/system/stats/route.ts` (NEW: GET aggregate counters + uptime + explicit per-process scope; secret-free), `web/app/api/telemetry/route.ts` (MODIFIED: every outcome recorded to ingestStats - 503 not_configured, 401, 429, 400 malformed/contract, 413, 503 database_unavailable, 200 with accepted/rejected counts; S22 contract behavior UNCHANGED), `web/tests/ingestStats.test.ts` (NEW: 6 tests), `web/README.md` (route table + stats scope note), `evidence/S24/*` (NEW), `TASKS.md`.
 
-**Validation evidence:** _pending_
+**Validation evidence:** `evidence/S24/validation_output.txt` + `run_validation.sh` (2026-09-15). [1] web tests 31/31 pass (25 prior + 6 new). [2] production build green: 8/8 pages, `/` and `/system` static shells, /api/system/stats dynamic. [3] live matrix (production server, DEVICE_INGEST_TOKEN=throwaway, DATABASE_URL unset): GET / 200 "Live Status"; GET /system 200 "System Health"; stats fresh zeros; POST wrong-token x2 -> 401 401; malformed -> 400; forbidden orp_mv -> 400; valid payload -> 503 {"error":"database unavailable - readings NOT stored"} (honest); stats then exactly requests=5, by_status {400:2,401:2,503:1}, errors_by_reason {unauthorized:2, malformed_json:1, contract_violation:1, database_unavailable:1}, last_accepted_at null; /api/health degraded/down. [3a]+[4a] dispositions: 'Bearer' HTML hit + DATABASE_URL client:1 were security-posture UI PROSE (names/mechanism words, zero values); copy reworded ("database credentials"/"timing-safe token comparison"), rebuilt, rescan client bundle = 0 for DATABASE_URL/Bearer/throwaway token/sk-sp-/postgres://; server-side env NAME refs (9 files) expected. [5] forbidden-term audit of all S24 sources: non_rejection_hits_exit=1 (zero). [6] pytest 90 passed; provisioning policy PASSED. [7] hygiene: no artifacts/.env staged.
 
-**Blockers/deviations:** _none recorded_
+**Blockers/deviations:** (1) DB engine still unavailable (S20 WSL blocker): with real telemetry stored, badge transitions (CURRENT->STALE dimming at 180 s, OPTIONAL_ABSENT vs MISSING) could not be exercised against live Postgres - validated instead via unit tests (states.test.ts), the S22 latest-endpoint contract and the honest-degradation live matrix (empty/503 paths). Once the engine exists: start compose, POST the contract sample, confirm badges + last-seen on `/` and `/system`. (2) Ingestion error counts are per-server-process in-memory (resets on restart, per instance) - stated verbatim in the API response and UI card; shared/persistent store deferred to S27 hardening (same limitation as the rate limiter). (3) No schema change was needed (counters are operational stats, not telemetry; nothing invented). (4) Unavailable-sensor drift review: no ORP/EC/ZP4510/FS300A fields, cards or mocks added; XKC renders only via stored water_level_state ('0'/'1'/NULL); light card labeled "Relative % only - never lux/PAR/PPFD".
 
-**Commit:** _pending_
+**Commit:** `feat: add live sensor and device health dashboard`
 
-**Resume pointer:** _pending_
+**Resume pointer:** Proceed to S25 (History Charts and Experiment Markers): wire `/history` to GET /api/telemetry/history (from/to range selection, channel whitelist UI, limit, ascending order, gaps NEVER interpolated - render discontinuities honestly) and `/experiments` to the experiment_markers table (timeline + manual provenance; DB-down -> honest empty). Evidence to `evidence/S25/`. Carry forward: S24 live-badge check when DB engine exists; S23 runtime captures when board attached; S04-S08 board captures; EXP01-EXP05 execution.
 
 ## Session 25 - History Charts and Experiment Markers
 **Status:** NOT_STARTED

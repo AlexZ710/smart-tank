@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
+import { ingestStats } from "@/lib/ingestStats";
 import { ingestLimiter } from "@/lib/ratelimit";
 import { scrubError } from "@/lib/scrub";
 import { parseIngestPayload } from "@/lib/validation";
@@ -32,19 +33,24 @@ function tokenMatches(actual: string | null, expected: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  // S24: every outcome below is counted in the per-process ingestion stats
+  // surfaced (aggregate-only, secret-free) at GET /api/system/stats.
   const expected = process.env.DEVICE_INGEST_TOKEN;
   if (!expected) {
+    ingestStats.record({ status: 503, reason: "not_configured" });
     return Response.json(
       { error: "ingestion not configured: DEVICE_INGEST_TOKEN missing on server" },
       { status: 503 },
     );
   }
   if (!tokenMatches(bearerToken(req), expected)) {
+    ingestStats.record({ status: 401, reason: "unauthorized" });
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const source = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   if (!ingestLimiter.allow(source)) {
+    ingestStats.record({ status: 429, reason: "rate_limited" });
     return Response.json(
       { error: "rate limited", retry_after_s: ingestLimiter.retryAfterS(source) },
       { status: 429 },
@@ -55,15 +61,21 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
+    ingestStats.record({ status: 400, reason: "malformed_json" });
     return Response.json({ error: "malformed JSON body" }, { status: 400 });
   }
 
   // parseIngestPayload is total: it never throws, it returns a status.
   const parsed = parseIngestPayload(body);
   if (parsed.status !== 200) {
+    ingestStats.record({
+      status: parsed.status,
+      reason: parsed.status === 413 ? "payload_too_large" : "contract_violation",
+    });
     return Response.json({ error: parsed.error }, { status: parsed.status });
   }
   if (parsed.rows.length === 0) {
+    ingestStats.record({ status: 200, accepted: 0, rejectedRows: parsed.rejected.length });
     return Response.json({ accepted: 0, rejected: parsed.rejected });
   }
 
@@ -94,11 +106,13 @@ export async function POST(req: NextRequest) {
   try {
     await db().query(sql, values);
   } catch (e) {
+    ingestStats.record({ status: 503, reason: "database_unavailable" });
     return Response.json(
       { error: "database unavailable - readings NOT stored", detail: scrubError(e) },
       { status: 503 },
     );
   }
 
+  ingestStats.record({ status: 200, accepted: parsed.rows.length, rejectedRows: parsed.rejected.length });
   return Response.json({ accepted: parsed.rows.length, rejected: parsed.rejected });
 }
