@@ -1,14 +1,19 @@
-import PlaceholderPage from "@/components/PlaceholderPage";
+import ReportsPanel from "@/components/ReportsPanel";
 
 export const metadata = { title: "Reports — Smart Tank" };
 
 export default function Page() {
   return (
-    <PlaceholderPage
-      title="Reports"
-      session="S26 (events and AI report UI)"
-      description="Bounded AI reports per docs/prompt_boundary.md: observation and verification suggestions only — never dosing or mains-control actions. Every recommendation keeps its [REQUIRES HUMAN CONFIRMATION] marker verbatim."
-      emptyState="No reports are displayed yet. Reports will appear here only from the bounded agent pipeline, with their human-confirmation markers preserved exactly as generated."
-    />
+    <>
+      <h1 className="text-3xl font-bold">Reports</h1>
+      <p className="mt-2 max-w-3xl text-sm opacity-70">
+        Bounded AI reports per <span className="font-mono">docs/prompt_boundary.md</span>: the model
+        restates stored observations only; recommendations come deterministically from S11 rule
+        events and always keep their <span className="font-mono">[REQUIRES HUMAN CONFIRMATION]</span>{" "}
+        marker; model output violating the measurement boundary is discarded, never stored; and
+        nothing in a report is ever executed automatically.
+      </p>
+      <ReportsPanel />
+    </>
   );
 }

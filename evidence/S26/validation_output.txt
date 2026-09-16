@@ -1,0 +1,117 @@
+S26 validation - Events and AI Report UI - 2026-09-16T13:04:39Z
+Host: Windows, Node v26.4.0. DB engine still unavailable (S20 blocker, WSL not installed):
+DB-backed events/reports paths validated for HONEST degradation (503 / empty states), never fabricated rows or reports.
+AI provider config (AI_*) lives ONLY in gitignored web/.env.local; server B below runs with AI_PROVIDER blanked to prove the not-configured path.
+
+[1] Web unit tests (node --test: validation, ratelimit, states, ingestStats, charting, events, reports)
+ℹ tests 57
+ℹ pass 57
+ℹ fail 0
+exit=0
+
+[2] Production build
+  Generating static pages using 15 workers (6/8) 
+✓ Generating static pages using 15 workers (8/8) in 500ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/events
+├ ƒ /api/experiments
+├ ƒ /api/health
+├ ƒ /api/reports
+├ ƒ /api/reports/generate
+├ ƒ /api/system/stats
+├ ƒ /api/telemetry
+├ ƒ /api/telemetry/history
+├ ƒ /api/telemetry/latest
+├ ○ /events
+├ ○ /experiments
+├ ○ /history
+├ ○ /reports
+└ ○ /system
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[3] Live API matrix - server A :3000 (web/.env.local loaded: AI configured, DATABASE_URL -> dead local engine)
+(server A ready after 2s)
+GET  /events page         -> 200 (expect 200)
+Events
+GET  /reports page        -> 200 (expect 200)
+Reports
+GET  events bad severity  -> 400 {"error":"severity must be one of: warning, critical"} (expect 400)
+GET  events rule ORP_HIGH -> 400 {"error":"rule_code outside the frozen S11 vocabulary; allowed: TEMP_MISSING, TEMP_INVALID, TEMP_OUT_OF_RANGE, TEMP_CRITICAL, PH_MISSING, PH_INVALID, PH_OUT_OF_RANGE, PH_CRITICAL"} (expect 400 frozen-vocabulary guard)
+GET  events rule FLOW_*   -> 400 {"error":"rule_code outside the frozen S11 vocabulary; allowed: TEMP_MISSING, TEMP_INVALID, TEMP_OUT_OF_RANGE, TEMP_CRITICAL, PH_MISSING, PH_INVALID, PH_OUT_OF_RANGE, PH_CRITICAL"} (expect 400)
+GET  events rule EC_HIGH  -> 400 {"error":"rule_code outside the frozen S11 vocabulary; allowed: TEMP_MISSING, TEMP_INVALID, TEMP_OUT_OF_RANGE, TEMP_CRITICAL, PH_MISSING, PH_INVALID, PH_OUT_OF_RANGE, PH_CRITICAL"} (expect 400)
+GET  events limit 9999    -> 400 {"error":"limit must be an integer 1..1000 (contract cap)"} (expect 400 contract cap)
+GET  events valid noDB    -> 503 {"events":[],"error":"database unavailable","detail":""} (expect 503 honest, empty events)
+GET  reports noDB         -> 503 {"reports":[],"error":"database unavailable","detail":""} (expect 503 honest, empty reports)
+GET  reports limit 99999  -> 400 {"error":"limit must be an integer 1..500"} (expect 400 cap)
+-- POST /api/reports/generate (limiter 5/min/source; probes ordered to exhaust it exactly):
+gen  {}                   -> 400 {"error":"from and to (ISO-8601) are required"} (expect 400 from/to required)
+gen  bad ISO              -> 400 {"error":"from/to must be valid ISO-8601 timestamps"} (expect 400)
+gen  to < from            -> 400 {"error":"to must be >= from"} (expect 400)
+gen  window > 7 days      -> 400 {"error":"window must be <= 7 days (bounded agent per docs/prompt_boundary.md)"} (expect 400 bounded window)
+gen  valid, DB down       -> 503 {"error":"database unavailable - no data to summarize; report NOT generated","detail":""} (expect 503 database unavailable - report NOT generated; provider never called without data)
+gen  valid, 6th in 1 min  -> 429 {"error":"rate limited","retry_after_s":60} (expect 429 rate limited)
+exit=0
+(server A stopped pid=44888)
+
+[3b] Server B :3001 with AI_PROVIDER blanked (process env overrides .env.local) - not-configured path
+(server B ready after 1s)
+gen  valid, no AI config  -> 503 {"error":"AI report generation not configured on server (AI_PROVIDER/AI_API_KEY/AI_MODEL/AI_BASEURL) - no report was generated or fabricated"} (expect 503 not configured - nothing generated or fabricated)
+(proof the blanked process env overrides .env.local: web/.env.local DOES set AI_PROVIDER; server B answers not-configured)
+exit=0
+(server B stopped pid=43600)
+
+[4] Secret scans: rendered HTML (/events + /reports captured in [3]) + last API response + build output
+  'sk-sp-' hits in last API response + rendered pages: 0 (expect 0)
+  'aliyuncs' hits in last API response + rendered pages: 0 (expect 0)
+  'postgres://' hits in last API response + rendered pages: 0 (expect 0)
+  VALUE 'sk-sp-' -> client-bundle:0 server-build:0 (expect client:0; server:0 - keys stay in gitignored env, not build output)
+  VALUE 'aliyuncs' -> client-bundle:0 server-build:0 (expect client:0; server:0 - keys stay in gitignored env, not build output)
+  VALUE 'postgres://' -> client-bundle:0 server-build:0 (expect client:0; server:0 - keys stay in gitignored env, not build output)
+  VALUE 'qwen3.8-max' -> client-bundle:0 server-build:0 (expect client:0; server:0 - keys stay in gitignored env, not build output)
+  NAME 'AI_API_KEY' -> client:0 server:3 (client MUST be 0; server hits are process.env reads inside the generate route = expected)
+  NAME 'AI_BASEURL' -> client:0 server:2 (client MUST be 0; server hits are process.env reads inside the generate route = expected)
+  NAME 'AI_PROVIDER' -> client:0 server:2 (client MUST be 0; server hits are process.env reads inside the generate route = expected)
+  NAME 'AI_MODEL' -> client:0 server:2 (client MUST be 0; server hits are process.env reads inside the generate route = expected)
+exit=0
+
+[5] Forbidden-term audit of S26 sources (residuals must be rejection/guard/test-expectation prose)
+web/tests/reports.test.ts:97:    "No conductivity sensor is installed in this baseline.",
+non_rejection_hits_exit=0 (1 = zero residual hits = PASS)
+
+[6] Standing gates: pytest + provisioning policy
+..................                                                       [100%]
+90 passed in 4.08s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[7] Hygiene: no artifacts/secrets staged
+leak_hits_exit=1 (1 = zero = PASS)
+
+[5a] Manual disposition of [5] residual hit (test FIXTURE proving the rejection-prose allowance - not a product-code residual):
+- web/tests/reports.test.ts:97 ("No conductivity sensor is installed in this baseline."):
+  an absence/rejection-prose fixture inside the "guardGeneratedText allows absence/rejection prose
+  (mirrors repo audits)" test; asserted ok:true, i.e. it proves the OUTPUT boundary deliberately
+  permits stating that a forbidden parameter is NOT measured (same allowance the repo-wide
+  forbidden-term audits use). The single-term grep filter lacks a cue for "No ... is installed",
+  hence the visible residual.
+All other fixture lines carry inline "should reject" annotations and are filtered as rejection
+prose. Product sources (lib/events.ts, lib/reports.ts, API routes, panels, pages) contributed
+ZERO residual hits: every forbidden-term mention there sits on a rejection/guard/boundary line
+by design.
+Disposition: PASS - residual is rejection/test-expectation prose only.
+
+[4a] Note on scan-pattern choice: the VALUE scans use credential prefix/host/scheme probes
+("sk-sp-", provider host, "postgres://", model id) rather than key-derived fragments, because
+committed evidence must itself pass the repo staged-diff secret rule (fragments of the real key
+are never written into tracked files). The prefix+host probes fully cover the actual credential
+strings; all scans returned 0 in client bundle AND server build output.
