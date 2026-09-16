@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { bearerToken, tokenMatches } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createRateLimiter } from "@/lib/ratelimit";
 import {
@@ -100,6 +101,26 @@ async function callProvider(
 }
 
 export async function POST(req: NextRequest) {
+  // S27 hardening (closes the S26 carry-over): generation is mutating and
+  // spends provider tokens, so it requires REPORTS_GENERATE_TOKEN whenever
+  // one is configured (timing-safe Bearer compare, identical to ingestion).
+  // On a public deployment (Vercel sets VERCEL=1) a MISSING token is refused
+  // outright - the endpoint is never silently open in production. Local dev
+  // without a token stays open (documented in web/README.md + guide).
+  const expectedToken = process.env.REPORTS_GENERATE_TOKEN;
+  if (!expectedToken && process.env.VERCEL === "1") {
+    return Response.json(
+      {
+        error:
+          "report generation is not secured: REPORTS_GENERATE_TOKEN missing on a public deployment - refusing rather than staying open",
+      },
+      { status: 503 },
+    );
+  }
+  if (expectedToken && !tokenMatches(bearerToken(req), expectedToken)) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const source = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   if (!generateLimiter.allow(source)) {
     return Response.json(

@@ -1,0 +1,85 @@
+S27 validation - Vercel Deployment and Hardening - 2026-09-16T13:43:48Z
+Host: Windows, Node v26.4.0. No Vercel account/CLI on host and DB engine unavailable (S20 WSL blocker):
+live deployment DEFERRED (runbook ready in docs/Vercel_Deployment_Guide.md); deployment-equivalent checks run locally below.
+
+[1] Web unit tests (adds hardening: timing-safe token compare + managed-Postgres SSL decision)
+ℹ tests 63
+ℹ pass 63
+ℹ fail 0
+exit=0
+
+[2] Production build (first build WITH next.config.mjs security headers)
+├ ○ /history
+├ ○ /reports
+└ ○ /system
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[3] Server A :3000 - local dev posture (DEVICE_INGEST_TOKEN set, REPORTS_GENERATE_TOKEN unset, VERCEL unset)
+(server A ready after 2s)
+GET  /api/health              -> 200 {"status":"degraded","database":"down","version":"0.2.0-s22","detail":"","checked_at":"2026-09-16T13:44:07.051Z"} (expect 200, database down honest)
+-- security headers on / (curl -sI):
+  header 'content-security-policy' present: 1 (expect 1)
+  header 'x-content-type-options: nosniff' present: 1 (expect 1)
+  header 'x-frame-options: DENY' present: 1 (expect 1)
+  header 'referrer-policy' present: 1 (expect 1)
+  header 'permissions-policy' present: 1 (expect 1)
+  header 'x-powered-by' present: 0 (expect 0 - suppressed)
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+-- unauthenticated ingestion REJECTED (deployment acceptance evidence, local production build):
+POST /api/telemetry no token  -> 401 {"error":"unauthorized"} (expect 401)
+POST /api/telemetry w/ token  -> 400 {"error":"readings must be an array"} (expect 400 malformed body - proves auth PASSED with correct token)
+-- generate open in local dev by design (no REPORTS_GENERATE_TOKEN, not on Vercel):
+POST generate no token        -> 503 {"error":"database unavailable - no data to summarize; report NOT generated","detail":""} (expect 503 database unavailable - report NOT generated)
+-- S26 regression: events guard still live:
+GET  events rule ORP_HIGH     -> 400 (expect 400 frozen vocabulary)
+GET  /reports page            -> 200 captured (11517 bytes)
+exit=0
+(server A stopped pid=46140)
+
+[3b] Server B :3001 - REPORTS_GENERATE_TOKEN configured (timing-safe Bearer required)
+(server B ready after 1s)
+POST generate no token        -> 401 {"error":"unauthorized"} (expect 401)
+POST generate wrong token     -> 401 {"error":"unauthorized"} (expect 401)
+POST generate correct token   -> 503 {"error":"database unavailable - no data to summarize; report NOT generated","detail":""} (expect 503 database unavailable - auth passed, pipeline honest)
+exit=0
+(server B stopped pid=12584)
+
+[3c] Server C :3001 - VERCEL=1 with REPORTS_GENERATE_TOKEN MISSING (production refusal posture)
+(server C ready after 1s)
+POST generate (prod, no tok)  -> 503 {"error":"report generation is not secured: REPORTS_GENERATE_TOKEN missing on a public deployment - refusing rather than staying open"} (expect 503 refusing - NEVER open in production)
+exit=0
+(server C stopped pid=45196)
+
+[4] Secret scans: rendered page + responses + build output
+  'sk-sp-' hits in last response + /reports HTML: 0 (expect 0)
+  'aliyuncs' hits in last response + /reports HTML: 0 (expect 0)
+  'postgres://' hits in last response + /reports HTML: 0 (expect 0)
+  VALUE 's27-local-test-token-only' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  VALUE 's27-local-gen-token-only' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  VALUE 'sk-sp-' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  VALUE 'aliyuncs' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  VALUE 'postgres://' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  VALUE 'qwen3.8-max' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  VALUE 'smart_tank_dev_only' -> client-bundle:0 server-build:0 (expect 0/0 - throwaway tokens were process env only)
+  NAME 'REPORTS_GENERATE_TOKEN' -> client:0 server:2 (client MUST be 0; server hits are process.env reads in Route Handlers = expected)
+  NAME 'DEVICE_INGEST_TOKEN' -> client:0 server:2 (client MUST be 0; server hits are process.env reads in Route Handlers = expected)
+  NAME 'AI_API_KEY' -> client:0 server:3 (client MUST be 0; server hits are process.env reads in Route Handlers = expected)
+exit=0
+
+[5] Forbidden-term audit of S27 sources (residuals must be rejection/absent/boundary prose)
+non_rejection_hits_exit=1 (1 = zero residual hits = PASS)
+
+[6] Standing gates: pytest + provisioning policy
+..................                                                       [100%]
+90 passed in 3.36s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[7] Hygiene: no artifacts/secrets staged
+leak_hits_exit=1 (1 = zero = PASS)

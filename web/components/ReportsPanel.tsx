@@ -46,6 +46,7 @@ const NOTICE_STYLES: Record<Exclude<Notice, null>["kind"], string> = {
 export default function ReportsPanel() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [adminToken, setAdminToken] = useState(""); // S27: in-memory ONLY, never persisted/sent anywhere else
   const [generating, setGenerating] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
 
@@ -107,7 +108,10 @@ export default function ReportsPanel() {
     try {
       const res = await fetch("/api/reports/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(adminToken.trim() ? { Authorization: `Bearer ${adminToken.trim()}` } : {}),
+        },
         body: JSON.stringify({ from: f.toISOString(), to: t.toISOString() }),
       });
       const body = await res.json();
@@ -131,6 +135,16 @@ export default function ReportsPanel() {
           kind: "rate_limited",
           text: `Rate limited — generation is capped at 5/min/server. Retry in ${String(body?.retry_after_s ?? "?")} s.`,
         });
+      } else if (res.status === 401) {
+        setNotice({
+          kind: "error",
+          text: "Unauthorized — generation requires the admin token configured on the server. Enter it in the admin-token field; it is kept in browser memory only and never stored.",
+        });
+      } else if (res.status === 503 && String(body?.error ?? "").includes("not secured")) {
+        setNotice({
+          kind: "not_configured",
+          text: "Generation is disabled on this deployment: the server refuses to run the endpoint unsecured in production (admin token missing). No report was generated.",
+        });
       } else if (res.status === 503 && String(body?.error ?? "").includes("not configured")) {
         setNotice({
           kind: "not_configured",
@@ -151,7 +165,7 @@ export default function ReportsPanel() {
       setNotice({ kind: "error", text: "API unreachable — is the web server running?" });
     }
     setGenerating(false);
-  }, [from, to, loadReports]);
+  }, [from, to, adminToken, loadReports]);
 
   return (
     <div className="mt-6">
@@ -175,6 +189,17 @@ export default function ReportsPanel() {
             className="ml-1 rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-xs dark:border-zinc-700"
           />
         </label>
+        <label className="text-xs opacity-70">
+          admin token
+          <input
+            type="password"
+            value={adminToken}
+            onChange={(e) => setAdminToken(e.target.value)}
+            placeholder={adminToken ? "" : "unset (open in local dev)"}
+            autoComplete="off"
+            className="ml-1 w-40 rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-xs dark:border-zinc-700"
+          />
+        </label>
         <button
           type="button"
           onClick={generate}
@@ -184,7 +209,8 @@ export default function ReportsPanel() {
           {generating ? "Generating…" : "Generate bounded report"}
         </button>
         <span className="text-[11px] opacity-50">
-          max 7-day window · provider runs server-side only · output is guarded before storage
+          max 7-day window · provider runs server-side only · output is guarded before storage ·
+          admin token stays in browser memory, never persisted
         </span>
       </div>
 

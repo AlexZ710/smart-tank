@@ -32,7 +32,7 @@ from the repo root) and set `DATABASE_URL` in `.env.local`.
 | `GET /api/experiments` | live — READ-ONLY markers + manual measurements (limit ≤ 2000, truncation flags); never writes raw data; honest 503 when DB down | S25 |
 | `GET /api/events` | live — contract route: `from`/`to` optional ISO, `severity` `warning\|critical`, `rule_code` frozen S11 vocabulary (else 400), `limit` ≤ 1000 (default 200); rows mirror the `events` table; newest first; honest 503 when DB down | S26 |
 | `GET /api/reports` | live — contract route: rows mirror the `reports` table (generated-at `created_at`, scope window, `content_markdown` verbatim); `limit` ≤ 500 (default 50); never edits report bodies; honest 503 when DB down | S26 |
-| `POST /api/reports/generate` | live — bounded agent: whitelisted aggregates only in the prompt, provider call server-side (env `AI_*`), output guarded BEFORE storage (violation → 422, discarded whole), deterministic recommendations appended with `[REQUIRES HUMAN CONFIRMATION]`, boundary statement always appended; empty window → honest no-data report WITHOUT calling the provider; unconfigured → 503 (never fabricated) | S26 |
+| `POST /api/reports/generate` | live — bounded agent: Bearer `REPORTS_GENERATE_TOKEN` when configured (timing-safe; on Vercel a missing token → 503 refusal, never open in production), whitelisted aggregates only in the prompt, provider call server-side (env `AI_*`), output guarded BEFORE storage (violation → 422, discarded whole), deterministic recommendations appended with `[REQUIRES HUMAN CONFIRMATION]`, boundary statement always appended; empty window → honest no-data report WITHOUT calling the provider; unconfigured → 503 (never fabricated) | S26+S27 |
 | `POST /api/telemetry` | live — Bearer DEVICE_INGEST_TOKEN (timing-safe), contract ranges, forbidden fields → 400, batch cap 500 → 413, rate limit → 429, partial success `{accepted, rejected[]}`, null stored as NULL, honest 503 when DB down ("readings NOT stored") | S22 |
 | `GET /api/telemetry/latest` | live — newest per device + six-state channels; `{"devices": []}` when empty | S22 |
 | `GET /api/telemetry/history` | live — `from`/`to` required, channel whitelist, limit ≤ 5000, ascending, gaps never interpolated | S22 |
@@ -77,8 +77,20 @@ S27 hardening item).
   (no `NEXT_PUBLIC_` prefix, never sent to the browser, never echoed in
   responses or logs — provider errors are scrubbed). Missing config →
   honest 503 "not configured"; no key is ever hardcoded.
-- `POST /api/reports/generate` is unauthenticated locally (rate-limited
-  5/min/source); before any public deployment it MUST sit behind
-  authentication — tracked as an S27 hardening item.
+- `POST /api/reports/generate` (S27): requires Bearer
+  `REPORTS_GENERATE_TOKEN` whenever one is configured (timing-safe compare
+  via `lib/auth.ts`, shared with ingestion → 401). On Vercel (`VERCEL=1`)
+  a MISSING token → 503 refusal: generation is never open in production.
+  Local dev without the token stays open by design (rate-limited
+  5/min/source). The UI admin-token field keeps the value in browser
+  memory only — never persisted.
+- Production hardening (`next.config.mjs`, S27): security headers on every
+  route (CSP `default-src 'self'` / `connect-src 'self'` /
+  `frame-ancestors 'none'`, nosniff, DENY, Referrer-Policy,
+  Permissions-Policy) and `poweredByHeader: false`. Managed Postgres:
+  `lib/db.ts` enforces TLS (`ssl.rejectUnauthorized`) for every non-local
+  `DATABASE_URL` (node-postgres ignores libpq `sslmode=`), unit-tested.
+  Deployment + rollback runbook: `docs/Vercel_Deployment_Guide.md`;
+  pre-deploy checklist: `docs/Security_Checklist.md`.
 - Dependencies are pinned exactly in `package.json` (+ lockfile) — upgrade
   deliberately, never via `latest`.

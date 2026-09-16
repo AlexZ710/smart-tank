@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { timingSafeEqual } from "node:crypto";
+import { bearerToken, tokenMatches } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ingestStats } from "@/lib/ingestStats";
 import { ingestLimiter } from "@/lib/ratelimit";
@@ -18,19 +18,6 @@ import { parseIngestPayload } from "@/lib/validation";
 //  - Database unreachable -> 503 honest error, never a fake acceptance.
 
 export const dynamic = "force-dynamic";
-
-function bearerToken(req: NextRequest): string | null {
-  const header = req.headers.get("authorization") ?? "";
-  const m = /^Bearer\s+(.+)$/i.exec(header);
-  return m ? m[1].trim() : null;
-}
-
-function tokenMatches(actual: string | null, expected: string): boolean {
-  if (!actual) return false;
-  const a = Buffer.from(actual);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 export async function POST(req: NextRequest) {
   // S24: every outcome below is counted in the per-process ingestion stats
