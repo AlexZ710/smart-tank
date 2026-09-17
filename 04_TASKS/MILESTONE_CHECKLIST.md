@@ -1,5 +1,9 @@
 # Milestones
 
+> State authority is root `TASKS.md`. Reconciled at S28 (2026-09-16): M6/M7
+> updated from live evidence; board-gated items elsewhere stay open until the
+> ESP32-S3 is attached (S04-S08 runtime captures, EXP06 Part A).
+
 ## M1 S03 - scope/repository/schema
 - [ ] hardware and unavailable sensors frozen
 - [ ] repository/data schema established
@@ -19,7 +23,7 @@
 
 ## M4 S18 - core research milestone
 - [ ] experiments/evidence/figures ready
-- [ ] old 18-session core remains reproducible
+- [ ] old 18-session core stays reproducible
 
 ## M5 S23 - connected provisioned device
 - [ ] database/API online locally
@@ -28,12 +32,16 @@
 - [ ] changed/unreachable Wi-Fi can return to provisioning mode
 
 ## M6 S26 - usable web facade
-- [ ] live/current status
-- [ ] history/experiment markers
-- [ ] events and AI report UI
+- [x] live/current status (S24; live-DB chain proven S28)
+- [x] history/experiment markers (S25; live-DB chain proven S28)
+- [x] events and AI report UI (S26; LIVE bounded report round-trip S28)
 
 ## M7 S28 - final delivery
-- [ ] provisioning lifecycle evidence complete
-- [ ] Vercel deployment or documented deployment-ready state
-- [ ] EXP06 reliability evidence
-- [ ] final report/GitHub/demo complete
+- [ ] provisioning lifecycle evidence complete (DEFERRED: no board attached;
+      source-level policy validation PASSED - docs/EXP06_Results.md Part A)
+- [x] Vercel deployment or documented deployment-ready state (documented
+      deployment-ready: docs/Vercel_Deployment_Guide.md + evidence/S27)
+- [x] EXP06 reliability evidence (host-side software chain executed live incl.
+      outage/recovery; hardware portions DEFERRED - docs/EXP06_Results.md)
+- [x] final report/GitHub/demo complete (docs/Final_Report.md, README.md,
+      docs/Demo_Script.md)

@@ -7,7 +7,7 @@
 - Hardware: ESP32-S3-WROOM-1 + ADS1115 + pH + DS18B20 + PT550; XKC optional
 - Removed: ORP, EC, ZP4510, FS300A
 - Final extension: first-boot SoftAP provisioning + NVS configuration + Next.js + Tailwind + PostgreSQL + Wi-Fi telemetry + Vercel
-- Current session for a fresh repo: S28 (S01-S27 complete - core milestone closed, web contract frozen, DB workflow committed, web facade scaffolded, ingestion API live per frozen contract, S23 Wi-Fi telemetry sketch compile-verified (1081077 B flash / 82%, runtime HARDWARE-GATED - no board attached), S24 Live Status + System Health UI live, S25 History charts + experiment timeline live (bounded queries, gaps drawn as breaks - never interpolated, validated chart palette light+dark, read-only /api/experiments with MANUAL provenance), S26 Events + bounded AI reports live (frozen S11 vocabulary guard on /api/events - absent-sensor codes unqueryable, bounded generation with output guard - boundary violations discarded whole with 422, deterministic recommendations keep [REQUIRES HUMAN CONFIRMATION] verbatim, empty window never calls the provider, AI_* server-side env only - client bundle 0 hits), S27 deployment+hardening prepared (Vercel runbook + security checklist + env-var handling docs, security headers via next.config.mjs, TLS enforced for managed Postgres, REPORTS_GENERATE_TOKEN timing-safe auth on generation with production refusal posture - all validated deployment-equivalent locally; live Vercel deploy DEFERRED - no account/CLI on host); DB-backed data paths degrade honestly until an engine exists; S04-S08 carry pending board-verification follow-ups - see their deviation notes; S09-S27 fully validated host-side; S13-S17 prepared/designed-only, execution pending hardware/tank; live Docker DB init still blocked on host (WSL not installed) - DB round-trip + S23 on-device telemetry deferred; web build S28 next)
+- Current session for a fresh repo: NONE - ALL 28 SESSIONS COMPLETE (S28 final close-out 2026-09-16: DB engine unblocked WITHOUT Docker/WSL via conda-forge PostgreSQL 18.6 throwaway cluster OUTSIDE the repo (env tankdb, data dir under user home; Docker Desktop never touched per operator instruction); LIVE end-to-end chain proven with labeled SYNTHETIC mock telemetry (seed 42, scripts/s28_chain_demo.py): ingest guards 401/400/413 real over HTTP, 240-row batch -> 195 accepted / 45 rejected (out-of-contract fault rows rejected per-row, never clamped/stored; in-contract delivery 100%), Postgres read-back == accepted, frozen S11 rules engine on the DB read-back -> 98 real events (17 TEMP_CRITICAL / 33 TEMP_OUT_OF_RANGE / 15 PH_CRITICAL / 33 PH_OUT_OF_RANGE) inserted keyed to source reading_id, LIVE bounded AI report round-trip through the configured provider (markers verbatim, deterministic recommendations, boundary statement; transient provider-latency 502 stayed honest - "report NOT generated" - retry succeeded; empty window -> no-data-shortcut WITHOUT provider), EXP06 Part B host-side outage/recovery: health "database":"down" honest, ingest 503 "readings NOT stored", counts unchanged after recovery - nothing lost/invented; deliverables: docs/Final_Report.md, README.md rewritten per GitHub template, docs/Demo_Script.md (host-side variant), docs/EXP06_Results.md, milestone checklist reconciled; secret scans 0 across rendered pages/responses/bundles (names+values), audit zero residuals; standing gates web 63/63, build 16 routes, pytest 90, provisioning policy PASSED. DEFERRED (hardware/account-gated, itemized in docs/Final_Report.md §5/§8 + docs/EXP06_Results.md Part A): board-attached provisioning lifecycle runtime evidence (EXP06 Part A items 1-9, S23 runtime captures, S04-S08 board captures), real-tank EXP01-EXP05, pH buffer calibration (placeholder slope until CAL7/CAL4), live Vercel deploy (runbook ready - docs/Vercel_Deployment_Guide.md))
 
 ## Session 01 - Project Scope and Measurement Boundary
 **Status:** COMPLETE
@@ -618,25 +618,120 @@ Acceptance per S18 prompt: sensor/data/experiment core documented (milestone doc
 **Resume pointer:** Proceed to S28 (End-to-End Validation, Final Report and Demo): full-chain demo to the extent the engine/hardware blockers allow - (labeled mock OR real device when available) -> ingestion -> DB -> UI states -> events -> bounded report; final report document; evidence to `evidence/S28/`. Carry forward: live Vercel deploy + real deployed evidence (guide §5 commands ready); S26 stored-report live round-trip + S25 gap-break check + S24 live badges when a DB engine exists; S23 runtime captures when board attached; S04-S08 board captures; S07 CAL7/CAL4 buffer calibration; EXP01-EXP05 execution.
 
 ## Session 28 - End to End Validation Final Report and Demo
-**Status:** NOT_STARTED
+**Status:** COMPLETE
 
-- [ ] Read active prompt and baseline locks
-- [ ] Confirm files to create/modify
-- [ ] Implement session objective only
-- [ ] Run validation/build/compile/test
-- [ ] Save evidence under `evidence/S28/`
-- [ ] Update docs/schema if required
-- [ ] Review unavailable-sensor drift
-- [ ] Git commit created
+- [x] Read active prompt and baseline locks
+- [x] Confirm files to create/modify
+- [x] Implement session objective only
+- [x] Run validation/build/compile/test
+- [x] Save evidence under `evidence/S28/`
+- [x] Update docs/schema if required
+- [x] Review unavailable-sensor drift
+- [x] Git commit created
 
 - [ ] First-boot + reconnect + fallback + re-provision + factory-reset evidence complete
-- [ ] Repository secret scan confirms no real Wi-Fi password/device token is tracked
-**Changed files:** _pending_
+      (DEFERRED - HARDWARE-GATED: no ESP32-S3 board attached to the host; runtime
+      items 1-9 of EXP06 Part A cannot be honestly recorded without it. Source-level
+      substitutes validated: firmware compiles clean (evidence/S23), provisioning
+      policy scan PASSED, NVS lifecycle unit-tested (pytest 90). Procedure + exact
+      resume steps recorded in docs/EXP06_Results.md Part A.)
+- [x] Repository secret scan confirms no real Wi-Fi password/device token is tracked
+      (validate_wifi_provisioning.py PASSED; staged-diff scans 0 hits S22-S28;
+      S28 evidence: rendered pages/API responses 0 credential-probe hits, client
+      bundle 0 secret NAMES + 0 VALUES, throwaway test tokens labeled and
+      process-env-only)
 
-**Validation evidence:** _pending_
+**Changed files:**
+- `scripts/s28_chain_demo.py` (NEW) - labeled-mock end-to-end chain runner:
+  mock generator (seed 42) -> real HTTP contract (401/400-forbidden-field/413
+  guards, partial success) -> Postgres read-back via psql bridge -> FROZEN S11
+  `backend/rules/rules.detect_events` -> events INSERTed keyed to source
+  reading_id/recorded_at -> manual-only measurements + experiment marker
+  (labeled mock) -> latest/history/events/experiments read-backs -> LIVE bounded
+  report generation (one honest retry on transient provider 502) -> empty-window
+  no-data-shortcut. All output banner-labeled SYNTHETIC/NOT REAL TELEMETRY.
+- `docs/Final_Report.md` (NEW) - final technical report per
+  `07_Report_Templates/Technical_Report_Template.md` (all 10 sections; results
+  explicitly labeled mock; every hardware gap marked DEFERRED; reproducibility
+  incl. the no-Docker conda engine path; security audit).
+- `README.md` (REWRITTEN) - per `07_Report_Templates/GitHub_README_Template.md`:
+  architecture, hardware table (implemented-only + optional XKC), quick start
+  (Docker OR conda engine), hardware-free chain demo, experiments status,
+  final-delivery doc links, honest screenshots-pending note, limitations.
+- `docs/Demo_Script.md` (NEW) - 2-3 min demo, host-side variant: hardware steps
+  marked DEFERRED with host substitutes; live outage-honesty beat; fallbacks.
+- `docs/EXP06_Results.md` (NEW) - EXP06 record: Part A DEFERRED (hardware-gated,
+  item 10 secret scan PASS); Part B host-side EXECUTED (delivery success rate,
+  rejection explanation, outage/recovery timeline, bounded-report round-trip,
+  acceptance-criteria status table).
+- `04_TASKS/MILESTONE_CHECKLIST.md` - reconciled at S28: M6 checked (live-DB
+  proven), M7 checked except provisioning-lifecycle (DEFERRED annotation);
+  header notes TASKS.md as state authority.
+- `evidence/S28/run_validation.sh` + `evidence/S28/validation_output.txt` (NEW).
+- `TASKS.md` - this block + global final close-out.
 
-**Blockers/deviations:** _none recorded_
+**Validation evidence:** `evidence/S28/validation_output.txt` (canonical run
+2026-09-16T15:00Z, sections [1]-[12]):
+- [1] web unit tests 63/63 pass, fail 0. [2] production build green (16 routes).
+- [3] DB engine live: conda-forge PostgreSQL 18.6 (env `tankdb`, throwaway
+  cluster at `C:/Users/Alex1/tank_pg_s28/data` - OUTSIDE the repo; bootstrap
+  commands reproduced in the script header); schema tables = 5.
+- [4] first live-DB health of the project: `{"status":"ok","database":"up"}`.
+- [5] chain demo ALL CHECKS PASSED (chain_exit=0): accepted=195 rejected=45
+  (every rejection an out-of-contract fault row: -127 C sentinel / pH 15 /
+  light 150% - rejected per-row, never clamped/stored); DB read-back == 195;
+  rules engine 98 events (17 TEMP_CRITICAL, 33 TEMP_OUT_OF_RANGE, 15
+  PH_CRITICAL, 33 PH_OUT_OF_RANGE) all inserted; LIVE generate -> 200
+  (generated_by=provider, model qwen3.8-max, markers preserved, content
+  restates real aggregates e.g. max 33.5 C); empty window -> no-data-shortcut;
+  stored reports = 2.
+- [6] UI sweep: / /history /experiments /events /reports /system all 200.
+- [7] EXP06 Part B outage/recovery: pg stop -> health 200 "database":"down"
+  honest, ingest 503 "readings NOT stored", events 503 honest; pg start ->
+  health "up"; counts before==after (195/98/2) - nothing lost, nothing invented.
+- [8] secret scans: credential probes (prefix/host/scheme + throwaway tokens)
+  in rendered pages/responses 0 files; bundle VALUEs 0/0 incl. dev placeholder;
+  client NAMEs (AI_API_KEY/AI_PROVIDER/REPORTS_GENERATE_TOKEN/DEVICE_INGEST_TOKEN)
+  all 0. Patterns are prefix/host/scheme probes only - key-derived fragments
+  are never embedded in tracked evidence (rule from S26).
+- [9] forbidden-term audit of all S28 sources: non_rejection_hits_exit=1 (zero
+  residuals; filter extended with 'nothing' negation cue + 'float(' for Python
+  type casts, both annotated in-script).
+- [10] pytest 90 passed; provisioning policy validation PASSED.
+- [11] hygiene: no artifacts/secrets staged; mock read-back gitignored; cluster
+  outside repo. [12] server stopped cleanly.
 
-**Commit:** _pending_
+**Blockers/deviations:**
+- Docker engine still unavailable (WSL not installed, S20 blocker) and no host
+  Postgres binaries existed -> WORKED AROUND without touching Docker Desktop
+  (operator instruction): conda-forge PostgreSQL 18.6 in a NEW env `tankdb`
+  (never `reef`), data dir OUTSIDE the repo, trust auth, documented local-dev
+  placeholder credentials only. This lifted the DB blocker for every
+  DB-dependent acceptance item (S24 badges, S25 charts, S26 stored-report
+  round-trip, S27 TLS-local path) - all now proven live with labeled mock data.
+- EXP06 Part A (provisioning lifecycle runtime) DEFERRED - hardware-gated, no
+  board; item 10 (secret scan) PASSED host-side. Part B executed host-side
+  (endpoint outage/recovery); device-side Wi-Fi outage behavior deferred with
+  Part A.
+- One LIVE report attempt returned an honest 502 (provider latency > frozen
+  30 s cap, "report NOT generated" - never fabricated); single retry succeeded
+  in ~22 s. Retry behavior documented in the chain script.
+- All telemetry in this session is SYNTHETIC mock data (seed 42), labeled in
+  banners, DB notes and every document - never presented as real measurements.
+- EXP01-EXP05 not executed (require board + tank); pH buffer calibration still
+  pending (placeholder slope 1.50/2.03 V); live Vercel deploy still deferred
+  (no account/CLI on host - runbook ready).
 
-**Resume pointer:** _pending_
+**Commit:** `docs: finalize provisioned smart tank end-to-end delivery`
+
+**Resume pointer:** PROJECT COMPLETE - no next session; TASKS.md global status
+is the final close-out. Outstanding physical/account-gated follow-ups (each
+with its procedure already written): (1) board attached -> EXP06 Part A items
+1-9 per docs/EXP06_Results.md + docs/Device_Provisioning.md, S23 runtime
+captures, S04-S08 board captures; (2) real tank -> EXP01-EXP05 per
+06_Experiment_Templates/; (3) pH CAL7/CAL4 buffer calibration per
+docs/ph_calibration_log.md (replace placeholder slope); (4) Vercel account ->
+live deploy per docs/Vercel_Deployment_Guide.md §5 + post-deploy checks;
+(5) optional: replace throwaway tankdb cluster with Docker stack when WSL
+available. Local engine teardown when done:
+`"C:/Anaconda/envs/tankdb/Library/bin/pg_ctl.exe" -D "C:/Users/Alex1/tank_pg_s28/data" stop -m fast`.

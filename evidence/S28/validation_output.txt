@@ -1,0 +1,176 @@
+S28 validation - End-to-End Validation, Final Report and Demo - 2026-09-16T15:00:32Z
+Host: Windows, Node v26.4.0. DB engine: conda-forge PostgreSQL 18.6 (env tankdb, throwaway cluster OUTSIDE repo).
+Board NOT attached: provisioning lifecycle (EXP06 Part A) DEFERRED - see docs/EXP06_Results.md.
+ALL telemetry below is SYNTHETIC mock data (scripts/generate_mock_telemetry.py, seed 42), labeled - NOT REAL TELEMETRY.
+
+[1] Web unit tests
+ℹ tests 63
+ℹ pass 63
+ℹ fail 0
+exit=0
+
+[2] Production build
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+
+[3] DB engine live: schema tables present
+5
+expect 5 (telemetry_readings, events, experiment_markers, manual_measurements, reports); exit=0
+
+[4] Reset demo tables + start web production server (throwaway tokens; AI_* read from gitignored web/.env.local)
+truncate_exit=0
+(server ready after 1s)
+GET /api/health -> 200 {"status":"ok","database":"up","version":"0.2.0-s22","detail":"","checked_at":"2026-09-16T15:00:53.383Z"} (expect 200 + database up - FIRST live-DB health of the project)
+exit=0
+
+[5] Live end-to-end chain demo (labeled mock device -> real contract -> DB -> frozen rules engine -> events -> LIVE bounded report)
+========================================================================
+S28 chain demo - ALL TELEMETRY BELOW IS SYNTHETIC MOCK DATA,
+labeled in-DB, generated deterministically (seed 42). NOT REAL.
+========================================================================
+
+[0] GET /api/health (database must be UP - first live-DB health of the project)
+  [OK ] health status: expected 200, got 200
+  [OK ] health database: expected 'up', got 'up'
+
+[1] Auth + contract rejection paths (real HTTP contract)
+  [OK ] no token -> 401: expected 401, got 401
+  [OK ] wrong token -> 401: expected 401, got 401
+  [OK ] forbidden field -> 400 (rejected, never stored): expected 400, got 400
+  [OK ] 501-row batch -> 413: expected 413, got 413
+
+[2] Labeled-mock batch ingest (scenario 'all', 240 rows, seed 42)
+  [OK ] mock batch -> 200: expected 200, got 200
+  accepted=195 rejected=45 (rejections are out-of-contract fault rows - rejected, never clamped/stored)
+    rejected idx 181: temperature_c=-127 out of range -10..85 (rejected, never clamped)
+    rejected idx 182: ph=15 out of range 0..14 (rejected, never clamped)
+    rejected idx 183: light_relative_pct=150 out of range 0..100 (rejected, never clamped)
+    rejected idx 185: temperature_c=-127 out of range -10..85 (rejected, never clamped)
+    rejected idx 186: ph=15 out of range 0..14 (rejected, never clamped)
+    rejected idx 187: light_relative_pct=150 out of range 0..100 (rejected, never clamped)
+
+[3] Postgres read-back (stored rows must equal accepted count)
+  [OK ] DB rows == accepted: expected 195, got 195
+
+[4] Frozen S11 rules engine on DB read-back (deterministic, no invention)
+  engine events: 98
+severity  rule_code        
+critical  PH_CRITICAL          15
+          TEMP_CRITICAL        17
+warning   PH_OUT_OF_RANGE      33
+          TEMP_OUT_OF_RANGE    33
+  [OK ] events inserted == engine events: expected 98, got 98
+  events table total: 98
+
+[5] Manual-only measurements + experiment marker (labeled mock)
+  inserted 1 marker + 8 manual rows (salinity SG / ammonia - manual-only metrics)
+
+[6] API read-backs consumed by the UI pages
+  [OK ] latest -> 200: expected 200, got 200
+  [OK ] latest shows mock device: expected True, got True
+  [OK ] history -> 200: expected 200, got 200
+  history points in window: count=195
+  [OK ] events -> 200: expected 200, got 200
+  events returned: 98; codes seen: ['PH_CRITICAL', 'PH_OUT_OF_RANGE', 'TEMP_CRITICAL', 'TEMP_OUT_OF_RANGE']
+  [OK ] experiments -> 200: expected 200, got 200
+
+[7] POST /api/reports/generate - LIVE bounded agent over the mock window
+  [OK ] generate -> 200 (live provider round-trip): expected 200, got 200
+  generated_by=provider model=qwen3.8-max
+  [OK ] markers preserved: expected True, got True
+  --- report content (first 600 chars, stored VERBATIM) ---
+  ## Observation summary
+  
+  **Observation window:** 2026-09-16T13:01:03.000Z to 2026-09-16T15:06:03.000Z UTC  
+  **Stored telemetry rows in window:** 195
+  
+  ### Measured telemetry
+  
+  | Channel | Samples | Min | Max | Avg |
+  |---|---:|---:|---:|---:|
+  | Temperature °C — DS18B20 | 195 | 25.424 | 33.5 | 27.243 |
+  | pH — SEN0161-V2 | 195 | 6.8 | 8.328 | 8.039 |
+  | Light relative % — PT550 | 195 | 50 | 94.98 | 78.184 |
+  
+  Light is reported only as **relative %**.
+  
+  ### Manual measurements
+  
+  - **Ammonia:** 0 mg/L — manual measurement using liquid test kit at 2026-09-16T14:01:02.995Z  
+  - **Salinity:** 1.0258 SG — manu
+  --- end excerpt ---
+
+[8] Empty window -> honest no-data report (provider NOT called)
+  [OK ] no-data generate -> 200: expected 200, got 200
+  [OK ] generated_by == no-data-shortcut: expected 'no-data-shortcut', got 'no-data-shortcut'
+  [OK ] reports list -> 200: expected 200, got 200
+  stored reports: 2
+
+========================================================================
+CHAIN DEMO: ALL CHECKS PASSED - mock device -> auth -> contract -> Postgres
+-> frozen rules engine -> events -> API read-backs -> LIVE bounded report.
+Reminder: all telemetry above is SYNTHETIC mock data, labeled in-DB.
+chain_exit=0 (expect 0 = ALL CHECKS PASSED)
+
+[6] UI page sweep (browser-facing HTML captured for secret scan)
+GET / -> 200 (expect 200)
+GET /history -> 200 (expect 200)
+GET /experiments -> 200 (expect 200)
+GET /events -> 200 (expect 200)
+GET /reports -> 200 (expect 200)
+GET /system -> 200 (expect 200)
+exit=0
+
+[7] EXP06 Part B host-side: endpoint outage -> honest degradation -> recovery with NO invented/lost data
+counts BEFORE outage: telemetry=195 events=98 reports=2
+pg stop exit=0
+GET /api/health (DB down)  -> 200 {"status":"degraded","database":"down","version":"0.2.0-s22","detail":"","checked_at":"2026-09-16T15:01:35.986Z"} (expect 200 + database down, honest)
+POST /api/telemetry (down) -> 503 {"error":"database unavailable - readings NOT stored","detail":""} (expect 503 'readings NOT stored' - never a fake acceptance)
+GET /api/events (down)     -> 503 {"events":[],"error":"database unavailable","detail":""} (expect 503 honest)
+pg start exit=0
+(db ready after 1s)
+GET /api/health (recovered) -> 200 {"status":"ok","database":"up","version":"0.2.0-s22","detail":"","checked_at":"2026-09-16T15:01:37.454Z"} (expect 200 + database up)
+counts AFTER recovery: telemetry=195 events=98 reports=2 (must equal BEFORE - nothing lost, nothing invented)
+counts_unchanged_exit=0 (expect 0)
+exit=0
+
+[8] Secret scans: browser output (rendered HTML + API responses) and bundles
+  'sk-sp-' in rendered pages/responses: 0 files (expect 0)
+  'aliyuncs' in rendered pages/responses: 0 files (expect 0)
+  'postgres://' in rendered pages/responses: 0 files (expect 0)
+  's28-local-test-token-only' in rendered pages/responses: 0 files (expect 0)
+  's28-local-gen-token-only' in rendered pages/responses: 0 files (expect 0)
+  VALUE 's28-local-test-token-only' -> client-bundle:0 server-build:0 (expect 0/0 - tokens were process env only)
+  VALUE 's28-local-gen-token-only' -> client-bundle:0 server-build:0 (expect 0/0 - tokens were process env only)
+  VALUE 'sk-sp-' -> client-bundle:0 server-build:0 (expect 0/0 - tokens were process env only)
+  VALUE 'aliyuncs' -> client-bundle:0 server-build:0 (expect 0/0 - tokens were process env only)
+  VALUE 'smart_tank_dev_only' -> client-bundle:0 server-build:0 (expect 0/0 - tokens were process env only)
+  NAME 'AI_API_KEY' -> client:0 (expect 0)
+  NAME 'AI_PROVIDER' -> client:0 (expect 0)
+  NAME 'REPORTS_GENERATE_TOKEN' -> client:0 (expect 0)
+  NAME 'DEVICE_INGEST_TOKEN' -> client:0 (expect 0)
+exit=0
+
+[9] Forbidden-term audit of S28 sources (residuals must be rejection/absent/boundary prose)
+non_rejection_hits_exit=1 (1 = zero residual hits = PASS)
+
+[10] Standing gates: pytest + provisioning policy
+..................                                                       [100%]
+90 passed in 4.26s
+pytest_exit=0
+Provisioning policy validation PASSED
+policy_exit=0
+
+[11] Hygiene: no artifacts/secrets staged; mock outputs gitignored; cluster outside repo
+leak_hits_exit=1 (1 = zero = PASS)
+mock_readback_gitignored_exit=0 (0 = ignored = PASS)
+
+[12] Stop server
+(server stopped pid=32228)
+Postgres cluster left running for inspection; stop with:
+  "C:/Anaconda/envs/tankdb/Library/bin/pg_ctl.exe" -D "C:/Users/Alex1/tank_pg_s28/data" stop -m fast
+
+S28 validation complete.
