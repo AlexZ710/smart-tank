@@ -26,3 +26,5 @@ node_modules/
 web/next-env.d.ts
 web/*.tsbuildinfo
 npm-debug.log*
+.neon
+.claude/settings.local.json
