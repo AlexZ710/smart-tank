@@ -39,8 +39,9 @@
 ## M7 S28 - final delivery
 - [ ] provisioning lifecycle evidence complete (DEFERRED: no board attached;
       source-level policy validation PASSED - docs/EXP06_Results.md Part A)
-- [x] Vercel deployment or documented deployment-ready state (documented
-      deployment-ready: docs/Vercel_Deployment_Guide.md + evidence/S27)
+- [x] Vercel deployment or documented deployment-ready state (LIVE
+      2026-09-19: https://smart-tank-one.vercel.app on Neon, verified
+      end-to-end - docs/Vercel_Deployment_Guide.md status note)
 - [x] EXP06 reliability evidence (host-side software chain executed live incl.
       outage/recovery; hardware portions DEFERRED - docs/EXP06_Results.md)
 - [x] final report/GitHub/demo complete (docs/Final_Report.md, README.md,

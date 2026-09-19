@@ -6,12 +6,28 @@ written to be executed verbatim once a Vercel account and a managed
 PostgreSQL provider exist. Nothing in it loosens the frozen measurement
 boundary or the honesty rules.
 
-> Status note (2026-09-16): no Vercel account/CLI login exists on this host
-> yet, and the local Docker engine is unavailable (S20 blocker: WSL not
-> installed). The live-deployment acceptance evidence (deployed
-> `/api/health`, live 401) is therefore DEFERRED and must be captured at
-> first deployment; all deployable artifacts, env handling, protections and
-> local deployment-equivalent checks are in place (see `evidence/S27/`).
+> Status note (2026-09-16): live deploy DEFERRED at S27 (no Vercel
+> account/CLI on host; local Docker engine unavailable). All deployable
+> artifacts, env handling, protections and local deployment-equivalent
+> checks were in place (see `evidence/S27/`).
+>
+> Status note (2026-09-19): **LIVE — deployed and verified.** Project
+> `smart-tank` (`prj_47i5keeMpV7I2ihwF3mD1xrE6tfK`, Root Directory `web`,
+> framework `nextjs`) is connected to the GitHub repo; production alias
+> `https://smart-tank-one.vercel.app` (Neon pooled `DATABASE_URL`). Deploy
+> driven via the Vercel REST API (CLI login fetch broken through the host
+> proxy). Acceptance evidence captured live: `/api/health` →
+> `{"status":"ok","database":"up"}`; security headers present (CSP, HSTS,
+> `X-Frame-Options: DENY`, nosniff, permissions-policy) and `x-powered-by`
+> absent; all six pages 200; telemetry no/wrong token → 401, forbidden field
+> `orp_mv` → 400 ("absent from hardware baseline"), non-vocabulary
+> `rule_code=ORP_HIGH` → 400; reports/generate no token → 401, empty window
+> with admin token → 200 `no-data-shortcut` (provider NOT called); labeled
+> smoke ingest (device `e2e-smoke-test`, 2 rows) → `accepted:2`, read back,
+> then DELETEd from Neon and re-verified gone (0 rows). Response secret
+> scans (AI-key prefix/host/scheme probes + both device and admin tokens) →
+> 0 hits. Production secrets live ONLY in Vercel env (7 vars) + operator's
+> gitignored `.env.local`; never committed or printed.
 
 ## 1. Architecture recap
 
